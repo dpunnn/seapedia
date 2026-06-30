@@ -27,7 +27,7 @@ export default function PublicStorePage() {
     }
     setAdding(productId);
     try {
-      await api.post('/buyer/cart', { productId, quantity: 1 });
+      await api.post('/buyer/cart/items', { productId, quantity: 1 });
       toast.success('Produk ditambahkan ke keranjang');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Gagal');
