@@ -11,7 +11,11 @@ import api from '@/lib/api';
 const NAV = [
   { href: '/dashboard/admin', label: 'Dashboard' },
   { href: '/dashboard/admin/orders', label: 'Pesanan' },
+  { href: '/dashboard/admin/orders/overdue', label: 'Overdue' },
   { href: '/dashboard/admin/users', label: 'Pengguna' },
+  { href: '/dashboard/admin/stores', label: 'Toko' },
+  { href: '/dashboard/admin/products', label: 'Produk' },
+  { href: '/dashboard/admin/deliveries', label: 'Pengiriman' },
   { href: '/dashboard/admin/vouchers', label: 'Voucher' },
   { href: '/dashboard/admin/promos', label: 'Promo' },
   { href: '/dashboard/admin/time', label: 'Simulasi Waktu' },

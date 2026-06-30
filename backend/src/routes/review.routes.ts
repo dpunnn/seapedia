@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { createReview, getReviews } from '../controllers/review.controller';
-import { verifyJWT } from '../middleware/auth.middleware';
+import { optionalJWT } from '../middleware/auth.middleware';
 
 const router = Router();
 
 router.get('/', getReviews);
-router.post('/', verifyJWT, createReview);
+router.post('/', optionalJWT, createReview);
 
 export default router;
