@@ -15,9 +15,14 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    if (err.response?.status === 401 && typeof window !== 'undefined') {
+      const msg: string = err.response?.data?.message ?? '';
       Cookies.remove('token');
-      if (typeof window !== 'undefined') window.location.href = '/login';
+      if (msg.includes('diblokir')) {
+        window.location.href = '/login?blocked=1';
+      } else if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(err);
   }

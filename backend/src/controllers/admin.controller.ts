@@ -48,6 +48,36 @@ export const getUsers = async (req: AuthRequest, res: Response): Promise<void> =
   successResponse(res, { users: users.map(u => ({ ...u, passwordHash: undefined })), total, page });
 };
 
+export const toggleUserBlock = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const adminId = req.user?.userId;
+
+  if (id === adminId) {
+    errorResponse(res, 'Tidak bisa memblokir akun sendiri', 400);
+    return;
+  }
+
+  const user = await prisma.user.findUnique({ where: { id }, select: { id: true, isBlocked: true, roles: true } });
+  if (!user) {
+    errorResponse(res, 'Pengguna tidak ditemukan', 404);
+    return;
+  }
+
+  const isAdmin = user.roles.some((r: any) => r.role === 'ADMIN');
+  if (isAdmin) {
+    errorResponse(res, 'Tidak bisa memblokir sesama admin', 400);
+    return;
+  }
+
+  const updated = await prisma.user.update({
+    where: { id },
+    data: { isBlocked: !user.isBlocked },
+    select: { id: true, username: true, email: true, isBlocked: true },
+  });
+
+  successResponse(res, updated, updated.isBlocked ? 'Pengguna berhasil diblokir' : 'Pengguna berhasil dibuka blokir');
+};
+
 export const getAdminOrders = async (req: AuthRequest, res: Response): Promise<void> => {
   const status = req.query.status as string | undefined;
   const page = Math.max(1, parseInt(req.query.page as string) || 1);

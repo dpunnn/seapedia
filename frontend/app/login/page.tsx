@@ -34,6 +34,7 @@ function LoginPageInner() {
   const [showPw, setShowPw]         = useState(false);
   const [showRegPw, setShowRegPw]   = useState(false);
   const [error, setError]           = useState('');
+  const isBlocked = searchParams.get('blocked') === '1';
 
   useEffect(() => {
     const mode = searchParams.get('mode');
@@ -208,6 +209,17 @@ function LoginPageInner() {
           maxWidth: '440px', width: '100%', flexShrink: 0,
           boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
         }}>
+          {/* Blocked banner */}
+          {isBlocked && (
+            <div style={{
+              background: '#FEF2F2', border: '1.5px solid #FCA5A5', borderRadius: '12px',
+              padding: '12px 16px', marginBottom: '20px', color: '#DC2626', fontSize: '13px',
+              fontWeight: 600, lineHeight: 1.5,
+            }}>
+              Akun Anda telah diblokir oleh admin. Hubungi admin untuk informasi lebih lanjut.
+            </div>
+          )}
+
           {/* Tab switcher */}
           <div style={{
             display: 'flex', background: '#F1F5F9', borderRadius: '14px',

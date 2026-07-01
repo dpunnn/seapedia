@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { verifyJWT } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import {
-  getStats, getUsers, getAdminOrders, getOverdueOrders,
+  getStats, getUsers, toggleUserBlock, getAdminOrders, getOverdueOrders,
   getVirtualTime, advanceTime,
   createVoucher, getVouchers, getVoucherById,
   createPromo, getPromos, getPromoById,
@@ -15,6 +15,7 @@ router.use(verifyJWT, requireRole('ADMIN'));
 
 router.get('/stats', getStats);
 router.get('/users', getUsers);
+router.put('/users/:id/toggle-block', toggleUserBlock);
 
 router.get('/orders', getAdminOrders);
 router.get('/orders/overdue', getOverdueOrders);

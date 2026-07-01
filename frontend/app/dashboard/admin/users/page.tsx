@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import api from '@/lib/api';
-import { Users } from 'lucide-react';
+import { toast } from 'sonner';
+import { Users, ShieldOff, ShieldCheck } from 'lucide-react';
 
 const NAV = [
   { href: '/dashboard/admin', label: 'Dashboard' },
@@ -27,10 +28,26 @@ const ROLE_STYLE: Record<string, { bg: string; color: string }> = {
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [toggling, setToggling] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchUsers = () => {
     api.get('/admin/users').then(r => setUsers(r.data.data?.users || [])).finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { fetchUsers(); }, []);
+
+  const handleToggleBlock = async (userId: string, isBlocked: boolean) => {
+    setToggling(userId);
+    try {
+      const res = await api.put(`/admin/users/${userId}/toggle-block`);
+      toast.success(res.data.message);
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, isBlocked: !isBlocked } : u));
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Gagal mengubah status pengguna');
+    } finally {
+      setToggling(null);
+    }
+  };
 
   return (
     <DashboardLayout role="ADMIN" navItems={NAV}>
@@ -78,7 +95,7 @@ export default function AdminUsersPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: '#F8FAFC' }}>
-                    {['Pengguna', 'Email', 'Role', 'Bergabung'].map(h => (
+                    {['Pengguna', 'Email', 'Role', 'Status', 'Bergabung', 'Aksi'].map(h => (
                       <th
                         key={h}
                         style={{
@@ -152,9 +169,42 @@ export default function AdminUsersPage() {
                         </div>
                       </td>
                       <td style={{ padding: '14px 20px' }}>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 5,
+                          fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
+                          background: u.isBlocked ? '#FEF2F2' : '#F0FDF4',
+                          color: u.isBlocked ? '#DC2626' : '#16A34A',
+                        }}>
+                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: u.isBlocked ? '#DC2626' : '#16A34A', display: 'inline-block' }} />
+                          {u.isBlocked ? 'Diblokir' : 'Aktif'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 20px' }}>
                         <p style={{ fontSize: 13, color: '#94A3B8', margin: 0 }}>
                           {new Date(u.createdAt).toLocaleDateString('id-ID', { dateStyle: 'medium' })}
                         </p>
+                      </td>
+                      <td style={{ padding: '14px 20px' }}>
+                        {!u.roles.some((r: any) => r.role === 'ADMIN') && (
+                          <button
+                            onClick={() => handleToggleBlock(u.id, u.isBlocked)}
+                            disabled={toggling === u.id}
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 6,
+                              padding: '7px 14px', borderRadius: 8, border: 'none',
+                              fontSize: 12, fontWeight: 700, cursor: toggling === u.id ? 'not-allowed' : 'pointer',
+                              background: u.isBlocked ? '#F0FDF4' : '#FEF2F2',
+                              color: u.isBlocked ? '#16A34A' : '#DC2626',
+                              opacity: toggling === u.id ? 0.6 : 1,
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            {u.isBlocked
+                              ? <><ShieldCheck style={{ width: 13, height: 13 }} /> Buka Blokir</>
+                              : <><ShieldOff style={{ width: 13, height: 13 }} /> Blokir</>
+                            }
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
