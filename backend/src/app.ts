@@ -16,6 +16,7 @@ import adminRoutes from './routes/admin.routes';
 
 const app = express();
 
+// Trust Railway/Vercel reverse proxy for rate limiting
 app.set('trust proxy', 1);
 app.use(helmet());
 app.use(cors({
