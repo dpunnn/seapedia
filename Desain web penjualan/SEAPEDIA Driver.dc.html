@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body { margin:0; font-family:'Plus Jakarta Sans',system-ui,sans-serif; background:#F0F5FF; color:#0F172A; -webkit-font-smoothing:antialiased; min-height:100vh; }
+a { text-decoration:none; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)} }
+@keyframes pulseDot { 0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.4} }
+</style>
+</helmet>
+
+<sc-if value="{{ notReady }}" hint-placeholder-val="{{ true }}">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center"><div style="font-size:14px;color:#94A3B8">Memuat...</div></div>
+</sc-if>
+
+<sc-if value="{{ blocked }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="background:white;border-radius:24px;padding:44px;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.1)">
+      <div style="font-size:48px;margin-bottom:16px">🔒</div>
+      <div style="font-size:18px;font-weight:800;color:#0F172A;margin-bottom:8px">{{ blockedTitle }}</div>
+      <div style="font-size:13px;color:#64748B;line-height:1.7;margin-bottom:24px">{{ blockedDesc }}</div>
+      <a href="SEAPEDIA Login.dc.html" style="display:inline-block;padding:13px 26px;background:linear-gradient(135deg,#1D4ED8,#2563EB);color:white;border-radius:12px;font-size:14px;font-weight:700">Masuk sebagai Driver</a>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ showApp }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;min-height:100vh">
+
+  <!-- SIDEBAR -->
+  <aside style="width:240px;background:linear-gradient(180deg,#0F172A 0%,#1E293B 100%);display:flex;flex-direction:column;min-height:100vh;flex-shrink:0;position:sticky;top:0;height:100vh">
+    <div style="padding:24px 20px 20px;display:flex;flex-direction:column;flex:1">
+      <a href="SEAPEDIA.dc.html" style="display:flex;align-items:center;gap:9px;margin-bottom:28px">
+        <div style="width:34px;height:34px;background:linear-gradient(135deg,#1E40AF,#3B82F6);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px">🛍️</div>
+        <span style="font-size:18px;font-weight:900;color:white;letter-spacing:-.5px">SEAPEDIA</span>
+      </a>
+
+      <div style="background:rgba(255,255,255,.07);border-radius:16px;padding:16px;margin-bottom:24px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#059669,#34D399);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🛵</div>
+          <div style="min-width:0">
+            <div style="font-size:13px;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ driverName }}</div>
+            <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
+              <span style="width:6px;height:6px;border-radius:50%;background:#4ADE80;animation:pulseDot 2s infinite;flex-shrink:0"></span>
+              <span style="font-size:11px;color:rgba(255,255,255,.55)">Driver Aktif</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <nav style="display:flex;flex-direction:column;gap:3px">
+        <sc-for list="{{ navItems }}" as="nav" hint-placeholder-count="3">
+          <button onClick="{{ nav.onClick }}" style="{{ nav.style }}">
+            <span>{{ nav.icon }}</span>
+            <span style="flex:1;text-align:left">{{ nav.label }}</span>
+            <sc-if value="{{ nav.badge }}" hint-placeholder-val="{{ null }}">
+              <span style="{{ nav.badgeStyle }}">{{ nav.badge }}</span>
+            </sc-if>
+          </button>
+        </sc-for>
+      </nav>
+
+      <div style="margin-top:auto;padding-top:20px">
+        <a href="{{ logoutHref }}" onClick="{{ onLogout }}" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;color:rgba(255,255,255,.4);font-size:13px;font-weight:600" style-hover="background:rgba(255,255,255,.07);color:rgba(255,255,255,.7)">🚪 Keluar</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main style="flex:1;overflow:auto;padding:32px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
+      <div>
+        <div style="font-size:22px;font-weight:900;color:#0F172A">{{ pageTitle }}</div>
+        <div style="font-size:13px;color:#94A3B8;margin-top:3px">{{ pageSubtitle }}</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#059669,#34D399);border-radius:14px;padding:12px 20px;text-align:right">
+        <div style="font-size:10px;color:rgba(255,255,255,.75);font-weight:700;text-transform:uppercase">Total Earning</div>
+        <div style="font-size:20px;font-weight:900;color:white">{{ totalEarningFmt }}</div>
+      </div>
+    </div>
+
+    <!-- ─── CARI JOB ─── -->
+    <sc-if value="{{ isFindJobs }}" hint-placeholder-val="{{ true }}">
+      <div style="">
+        <sc-if value="{{ hasActiveJob }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:16px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+            <span style="font-size:22px">⚠️</span>
+            <div style="font-size:13px;color:#92400E;font-weight:600">Kamu masih punya job aktif yang sedang diantar. Selesaikan dulu sebelum mengambil job baru.</div>
+          </div>
+        </sc-if>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px">
+          <sc-for list="{{ availableJobs }}" as="job" hint-placeholder-count="4">
+            <div style="background:white;border-radius:20px;padding:22px;border:1.5px solid #F1F5F9;box-shadow:0 2px 8px rgba(0,0,0,.04)">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                <span style="font-size:12px;color:#94A3B8;font-weight:600">{{ job.code }}</span>
+                <span style="background:#EFF6FF;color:#2563EB;font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px">{{ job.deliveryLabel }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+                <div style="width:44px;height:44px;background:#F1F5F9;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🏪</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:700;color:#0F172A">{{ job.storeName }}</div>
+                  <div style="font-size:11px;color:#94A3B8;margin-top:2px">{{ job.itemCount }} item · {{ job.subtotalFmt }}</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;background:#F8FAFC;border-radius:10px;padding:10px 12px;margin-bottom:14px">
+                <span style="font-size:12px;color:#64748B">💰 Fee Pengantaran</span>
+                <span style="font-size:14px;font-weight:800;color:#16A34A">{{ job.feeFmt }} <span style="font-size:10px;color:#94A3B8;font-weight:500">(kamu: {{ job.earningFmt }})</span></span>
+              </div>
+              <button onClick="{{ job.onTake }}" style="{{ job.takeBtnStyle }}">{{ job.takeBtnLabel }}</button>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ noAvailableJobs }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:64px 32px;background:white;border-radius:20px">
+            <div style="font-size:56px;margin-bottom:14px">📭</div>
+            <div style="font-size:16px;font-weight:700;color:#0F172A;margin-bottom:6px">Belum ada job tersedia</div>
+            <div style="font-size:13px;color:#64748B">Job baru muncul setelah Seller memproses pesanan (status "Menunggu Pengirim")</div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- ─── JOB AKTIF ─── -->
+    <sc-if value="{{ isActiveJob }}" hint-placeholder-val="{{ false }}">
+      <div style="">
+        <sc-if value="{{ hasActiveJob }}" hint-placeholder-val="{{ false }}">
+          <div style="background:white;border-radius:22px;padding:28px;border:1.5px solid #F1F5F9;max-width:600px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+              <span style="font-size:13px;color:#94A3B8;font-weight:600">{{ activeJob.code }}</span>
+              <span style="background:#F5F3FF;color:#7C3AED;font-size:12px;font-weight:700;padding:4px 12px;border-radius:100px">🛵 Sedang Dikirim</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #F1F5F9">
+              <div style="width:52px;height:52px;background:#F1F5F9;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🏪</div>
+              <div>
+                <div style="font-size:15px;font-weight:800;color:#0F172A">{{ activeJob.storeName }}</div>
+                <div style="font-size:12px;color:#94A3B8;margin-top:2px">{{ activeJob.itemCount }} item · Diambil {{ activeJob.takenAtFmt }}</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+              <sc-for list="{{ activeJob.items }}" as="it" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#374151"><span>{{ it.emoji }}</span><span style="flex:1">{{ it.name }} ×{{ it.qty }}</span></div>
+              </sc-for>
+            </div>
+            <div style="background:#F0FDF4;border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+              <span style="font-size:13px;color:#166534;font-weight:600">💰 Earning job ini</span>
+              <span style="font-size:16px;font-weight:900;color:#16A34A">{{ activeJob.earningFmt }}</span>
+            </div>
+            <button onClick="{{ onCompleteJob }}" style="width:100%;padding:14px;background:linear-gradient(135deg,#059669,#10B981);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(5,150,105,.3)">✅ Konfirmasi Pesanan Terkirim</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noActiveJob }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:64px 32px;background:white;border-radius:20px">
+            <div style="font-size:56px;margin-bottom:14px">🛵</div>
+            <div style="font-size:16px;font-weight:700;color:#0F172A;margin-bottom:6px">Tidak ada job aktif</div>
+            <div style="font-size:13px;color:#64748B">Ambil job baru dari menu "Cari Job"</div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- ─── RIWAYAT ─── -->
+    <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+      <div style="">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
+          <div style="background:white;border-radius:18px;padding:20px;border:1.5px solid #F1F5F9">
+            <div style="font-size:12px;color:#94A3B8;font-weight:700;margin-bottom:8px">Total Job Selesai</div>
+            <div style="font-size:24px;font-weight:900;color:#0F172A">{{ completedCount }}</div>
+          </div>
+          <div style="background:white;border-radius:18px;padding:20px;border:1.5px solid #F1F5F9">
+            <div style="font-size:12px;color:#94A3B8;font-weight:700;margin-bottom:8px">Total Earning</div>
+            <div style="font-size:24px;font-weight:900;color:#16A34A">{{ totalEarningFmt }}</div>
+          </div>
+          <div style="background:white;border-radius:18px;padding:20px;border:1.5px solid #F1F5F9">
+            <div style="font-size:12px;color:#94A3B8;font-weight:700;margin-bottom:8px">Rata-rata / Job</div>
+            <div style="font-size:24px;font-weight:900;color:#0F172A">{{ avgEarningFmt }}</div>
+          </div>
+        </div>
+        <div style="background:white;border-radius:20px;border:1.5px solid #F1F5F9;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse">
+            <thead style="background:#F8FAFC">
+              <tr>
+                <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 20px;text-transform:uppercase">Pesanan</th>
+                <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 10px;text-transform:uppercase">Toko</th>
+                <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 10px;text-transform:uppercase">Selesai</th>
+                <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 10px;text-transform:uppercase">Earning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ historyJobs }}" as="h" hint-placeholder-count="4">
+                <tr style="border-bottom:1px solid #F8FAFC">
+                  <td style="padding:14px 20px;font-size:13px;font-weight:600;color:#2563EB">{{ h.code }}</td>
+                  <td style="padding:14px 10px;font-size:13px;color:#0F172A">{{ h.storeName }}</td>
+                  <td style="padding:14px 10px;font-size:12px;color:#64748B">{{ h.completedAtFmt }}</td>
+                  <td style="padding:14px 10px;font-size:13px;font-weight:800;color:#16A34A">+{{ h.earningFmt }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+          <sc-if value="{{ noHistory }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center;padding:48px;color:#94A3B8;font-size:13px">Belum ada job yang diselesaikan</div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { ready:false, page:'find' };
+
+  async componentDidMount() {
+    const Data = await import('./seapedia-data.js');
+    this.Data = Data;
+    this.db = Data.load();
+    this.setState({ ready:true });
+  }
+
+  navStyle(active) {
+    return { display:'flex', alignItems:'center', gap:'12px', padding:'11px 14px', borderRadius:'12px', border:'none', cursor:'pointer', width:'100%', fontSize:'13px', fontWeight:600, transition:'all .2s', background: active?'rgba(255,255,255,.14)':'transparent', color: active?'white':'rgba(255,255,255,.5)' };
+  }
+
+  renderVals() {
+    if (!this.state.ready) return { ready:false, notReady:true, blocked:false, showApp:false };
+    const Data = this.Data, db = this.db;
+    const currentUser = db.currentUser;
+    const isDriver = currentUser && currentUser.activeRole === 'driver';
+
+    if (!currentUser) {
+      return { ready:true, notReady:false, blocked:true, showApp:false, blockedTitle:'Silakan login', blockedDesc:'Halaman ini khusus untuk Driver. Masuk dengan akun yang punya role Driver (contoh akun demo: dewi).' };
+    }
+    if (!isDriver) {
+      return { ready:true, notReady:false, blocked:true, showApp:false, blockedTitle:'Akses Ditolak', blockedDesc:`Role aktifmu saat ini adalah "${currentUser.activeRole}". Halaman ini hanya untuk role Driver.` };
+    }
+
+    const { page } = this.state;
+    const username = currentUser.username;
+
+    const pageTitles = { find:'🔍 Cari Job', active:'🛵 Job Aktif', history:'📜 Riwayat & Earning' };
+    const pageSubs   = { find:'Job tersedia setelah Seller memproses pesanan', active:'Job yang sedang kamu antar', history:'Semua job yang sudah kamu selesaikan' };
+
+    const activeJobRaw = Data.listDriverJobs(db, username).find(j => j.status === 'taken');
+    const hasActiveJob = !!activeJobRaw;
+
+    const navItems = [
+      { id:'find',    icon:'🔍', label:'Cari Job',   badge: String(Data.listAvailableJobs(db).length) },
+      { id:'active',  icon:'🛵', label:'Job Aktif',  badge: hasActiveJob ? '1' : null },
+      { id:'history', icon:'📜', label:'Riwayat',    badge: null },
+    ].map(n => ({ ...n, onClick: () => this.setState({ page:n.id }), style: this.navStyle(page===n.id), badgeStyle: { background:'#059669', color:'white', fontSize:'10px', fontWeight:800, padding:'2px 7px', borderRadius:'100px' } }));
+
+    const DELIVERY_LABELS = { instant:'⚡ Instant', next_day:'📅 Next Day', regular:'🚚 Reguler' };
+
+    const availableJobsRaw = Data.listAvailableJobs(db);
+    const availableJobs = availableJobsRaw.map(j => {
+      const o = j.order;
+      const earning = Data.driverEarning(o);
+      return {
+        code: o.code, storeName: o.storeName, itemCount: o.items.reduce((a,i)=>a+i.qty,0),
+        subtotalFmt: Data.fmt(o.subtotal), feeFmt: Data.fmt(o.deliveryFee), earningFmt: Data.fmt(earning),
+        deliveryLabel: DELIVERY_LABELS[o.deliveryMethod] || o.deliveryMethod,
+        takeBtnLabel: hasActiveJob ? 'Selesaikan job aktif dulu' : '🛵 Ambil Job Ini',
+        takeBtnStyle: { width:'100%', padding:'12px', background: hasActiveJob ? '#E2E8F0' : 'linear-gradient(135deg,#059669,#10B981)', color: hasActiveJob ? '#94A3B8' : 'white', border:'none', borderRadius:'10px', fontSize:'13px', fontWeight:800, cursor: hasActiveJob ? 'not-allowed' : 'pointer' },
+        onTake: () => {
+          if (hasActiveJob) return;
+          Data.takeJob(db, o.id, username);
+          this.setState({ page:'active' });
+        },
+      };
+    });
+
+    let activeJob = null;
+    if (hasActiveJob) {
+      const o = activeJobRaw.order;
+      activeJob = {
+        code:o.code, storeName:o.storeName, itemCount:o.items.reduce((a,i)=>a+i.qty,0),
+        takenAtFmt: Data.fmtDate(activeJobRaw.takenAt),
+        items: o.items,
+        earningFmt: Data.fmt(Data.driverEarning(o)),
+        orderId: o.id,
+      };
+    }
+
+    const allJobs = Data.listDriverJobs(db, username);
+    const completedJobs = allJobs.filter(j => j.status === 'completed');
+    const totalEarning = completedJobs.reduce((a,j) => a + Data.driverEarning(j.order), 0);
+    const historyJobs = completedJobs.map(j => ({
+      code: j.order.code, storeName: j.order.storeName, completedAtFmt: Data.fmtDate(j.completedAt), earningFmt: Data.fmt(Data.driverEarning(j.order)),
+    })).sort((a,b) => 0);
+
+    return {
+      ready:true, blocked:false, showApp:true,
+      driverName: currentUser.name,
+      navItems,
+      pageTitle: pageTitles[page], pageSubtitle: pageSubs[page],
+      isFindJobs: page==='find', isActiveJob: page==='active', isHistory: page==='history',
+      availableJobs, noAvailableJobs: availableJobs.length===0,
+      hasActiveJob, noActiveJob: !hasActiveJob, activeJob, notReady:false,
+      onCompleteJob: () => { Data.completeJob(db, activeJob.orderId); this.forceUpdate(); },
+      completedCount: completedJobs.length,
+      totalEarningFmt: Data.fmt(totalEarning),
+      avgEarningFmt: Data.fmt(completedJobs.length ? totalEarning/completedJobs.length : 0),
+      historyJobs, noHistory: historyJobs.length===0,
+      logoutHref: 'SEAPEDIA.dc.html',
+      onLogout: () => { Data.logout(db); },
+    };
+  }
+}
+</script>
+</body>
+</html>

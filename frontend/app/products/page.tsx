@@ -72,8 +72,12 @@ function ProductsContent() {
               <Link key={p.id} href={`/products/${p.id}`}>
                 <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
                   <CardContent className="p-4 flex flex-col gap-2">
-                    <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center text-4xl">
-                      📦
+                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                      {p.imageUrl ? (
+                        <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-4xl">📦</span>
+                      )}
                     </div>
                     <p className="font-medium text-sm line-clamp-2">{p.name}</p>
                     <p className="text-blue-600 font-bold">{formatRupiah(p.price)}</p>

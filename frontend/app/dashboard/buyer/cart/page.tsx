@@ -128,7 +128,13 @@ export default function CartPage() {
             {items.map((item: any) => (
               <Card key={item.id}>
                 <CardContent className="p-4 flex items-center gap-3">
-                  <div className="text-3xl">📦</div>
+                  <div className="w-14 h-14 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
+                    {item.product.imageUrl ? (
+                      <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-2xl">📦</span>
+                    )}
+                  </div>
                   <div className="flex-1">
                     <p className="font-medium text-sm">{item.product.name}</p>
                     <p className="text-blue-600 text-sm font-bold">{formatRupiah(item.product.price)}</p>

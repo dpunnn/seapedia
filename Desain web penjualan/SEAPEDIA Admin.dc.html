@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body { margin:0; font-family:'Plus Jakarta Sans',system-ui,sans-serif; background:#F0F5FF; color:#0F172A; -webkit-font-smoothing:antialiased; min-height:100vh; }
+a { text-decoration:none; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)} }
+@keyframes pulseDot { 0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.4} }
+@keyframes toastIn { from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)} }
+</style>
+</helmet>
+
+<sc-if value="{{ notReady }}" hint-placeholder-val="{{ true }}">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center"><div style="font-size:14px;color:#94A3B8">Memuat...</div></div>
+</sc-if>
+
+<sc-if value="{{ blocked }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="background:white;border-radius:24px;padding:44px;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.1)">
+      <div style="font-size:48px;margin-bottom:16px">🔒</div>
+      <div style="font-size:18px;font-weight:800;color:#0F172A;margin-bottom:8px">Akses Khusus Admin</div>
+      <div style="font-size:13px;color:#64748B;line-height:1.7;margin-bottom:24px">Halaman ini hanya untuk role Admin. Masuk dengan akun demo <strong>admin / demo</strong>.</div>
+      <a href="SEAPEDIA Login.dc.html" style="display:inline-block;padding:13px 26px;background:linear-gradient(135deg,#1D4ED8,#2563EB);color:white;border-radius:12px;font-size:14px;font-weight:700">Masuk sebagai Admin</a>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ showApp }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;min-height:100vh">
+
+  <!-- SIDEBAR -->
+  <aside style="width:248px;background:linear-gradient(180deg,#0F172A 0%,#1E293B 100%);display:flex;flex-direction:column;min-height:100vh;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto">
+    <div style="padding:24px 20px;display:flex;flex-direction:column;flex:1">
+      <a href="SEAPEDIA.dc.html" style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+        <div style="width:34px;height:34px;background:linear-gradient(135deg,#1E40AF,#3B82F6);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px">🛍️</div>
+        <div><div style="font-size:17px;font-weight:900;color:white;letter-spacing:-.5px;line-height:1">SEAPEDIA</div><div style="font-size:10px;font-weight:700;color:#F59E0B;letter-spacing:1.5px;text-transform:uppercase">Admin Panel</div></div>
+      </a>
+      <div style="height:1px;background:rgba(255,255,255,.08);margin:16px 0"></div>
+
+      <div style="background:rgba(255,255,255,.07);border-radius:14px;padding:14px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#DC2626,#F87171);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">👑</div>
+          <div style="min-width:0">
+            <div style="font-size:13px;font-weight:700;color:white">Super Admin</div>
+            <div style="display:flex;align-items:center;gap:5px;margin-top:2px"><span style="width:6px;height:6px;border-radius:50%;background:#4ADE80;animation:pulseDot 2s infinite;flex-shrink:0"></span><span style="font-size:10px;color:rgba(255,255,255,.5)">{{ simTimeLabel }}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <nav style="display:flex;flex-direction:column;gap:3px">
+        <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="6">
+          <button onClick="{{ n.onClick }}" style="{{ n.style }}">
+            <span>{{ n.icon }}</span><span style="flex:1;text-align:left">{{ n.label }}</span>
+            <sc-if value="{{ n.badge }}" hint-placeholder-val="{{ null }}"><span style="{{ n.badgeStyle }}">{{ n.badge }}</span></sc-if>
+          </button>
+        </sc-for>
+      </nav>
+
+      <div style="margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,.07)">
+        <a href="SEAPEDIA.dc.html" onClick="{{ onLogout }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;color:rgba(255,255,255,.4);font-size:13px;font-weight:600" style-hover="background:rgba(255,255,255,.07);color:rgba(255,255,255,.7)">🚪 Keluar</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main style="flex:1;overflow:auto;min-width:0">
+    <div style="background:white;border-bottom:1px solid #E2E8F0;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10">
+      <div><div style="font-size:18px;font-weight:900;color:#0F172A">{{ pageTitle }}</div><div style="font-size:12px;color:#94A3B8;margin-top:1px">{{ pageSubtitle }}</div></div>
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:600;color:#64748B">🕐 Waktu sistem: {{ simTimeLabel }}</div>
+    </div>
+
+    <div style="padding:28px 32px">
+
+      <!-- ═══ OVERVIEW ═══ -->
+      <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+        <div style="">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+            <sc-for list="{{ kpiCards }}" as="kpi" hint-placeholder-count="4">
+              <div style="background:white;border-radius:20px;padding:22px;border:1.5px solid #F1F5F9">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase">{{ kpi.label }}</span><div style="{{ kpi.iconStyle }}">{{ kpi.icon }}</div></div>
+                <div style="font-size:26px;font-weight:900;color:#0F172A">{{ kpi.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
+            <div style="background:white;border-radius:20px;padding:22px;border:1.5px solid #F1F5F9">
+              <div style="font-size:12px;font-weight:700;color:#94A3B8;margin-bottom:10px">📦 Status Pesanan</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <sc-for list="{{ orderStatusBreakdown }}" as="sb" hint-placeholder-count="5">
+                  <div style="display:flex;justify-content:space-between;align-items:center"><span style="{{ sb.style }}">{{ sb.status }}</span><span style="font-size:13px;font-weight:800;color:#0F172A">{{ sb.count }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background:white;border-radius:20px;padding:22px;border:1.5px solid #F1F5F9">
+              <div style="font-size:12px;font-weight:700;color:#94A3B8;margin-bottom:10px">🎟️ Diskon</div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:13px;color:#374151">Voucher aktif</span><span style="font-size:13px;font-weight:800">{{ activeVoucherCount }}</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:#374151">Promo aktif</span><span style="font-size:13px;font-weight:800">{{ activePromoCount }}</span></div>
+            </div>
+            <div style="background:#FEF2F2;border-radius:20px;padding:22px;border:1.5px solid #FCA5A5">
+              <div style="font-size:12px;font-weight:700;color:#DC2626;margin-bottom:10px">🚨 Pesanan Overdue</div>
+              <div style="font-size:28px;font-weight:900;color:#DC2626;margin-bottom:8px">{{ overdueCount }}</div>
+              <button onClick="{{ goOverdue }}" style="width:100%;padding:9px;background:#DC2626;color:white;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer">Kelola Overdue →</button>
+            </div>
+          </div>
+
+          <div style="background:white;border-radius:22px;padding:24px;border:1.5px solid #F1F5F9">
+            <div style="font-size:15px;font-weight:800;color:#0F172A;margin-bottom:16px">🛵 Status Delivery Job</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+              <div style="background:#F8FAFC;border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:900;color:#0F172A">{{ availableJobs }}</div><div style="font-size:11px;color:#94A3B8;margin-top:4px">Tersedia</div></div>
+              <div style="background:#F8FAFC;border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:900;color:#0F172A">{{ activeJobs }}</div><div style="font-size:11px;color:#94A3B8;margin-top:4px">Sedang Diantar</div></div>
+              <div style="background:#F8FAFC;border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:900;color:#0F172A">{{ completedJobs }}</div><div style="font-size:11px;color:#94A3B8;margin-top:4px">Selesai</div></div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═══ PENGGUNA ═══ -->
+      <sc-if value="{{ isUsers }}" hint-placeholder-val="{{ false }}">
+        <div style="background:white;border-radius:20px;border:1.5px solid #F1F5F9;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse">
+            <thead style="background:#F8FAFC"><tr>
+              <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 20px;text-transform:uppercase">Username</th>
+              <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 10px;text-transform:uppercase">Nama</th>
+              <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 10px;text-transform:uppercase">Role</th>
+              <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 10px;text-transform:uppercase">Toko</th>
+            </tr></thead>
+            <tbody>
+              <sc-for list="{{ userList }}" as="u" hint-placeholder-count="6">
+                <tr style="border-bottom:1px solid #F8FAFC">
+                  <td style="padding:14px 20px;font-size:13px;font-weight:700;color:#2563EB;font-family:monospace">{{ u.username }}</td>
+                  <td style="padding:14px 10px;font-size:13px;color:#0F172A">{{ u.name }}</td>
+                  <td style="padding:14px 10px"><div style="display:flex;gap:4px;flex-wrap:wrap"><sc-for list="{{ u.roleBadges }}" as="rb" hint-placeholder-count="1"><span style="{{ rb.style }}">{{ rb.label }}</span></sc-for></div></td>
+                  <td style="padding:14px 10px;font-size:12px;color:#64748B">{{ u.storeName }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </sc-if>
+
+      <!-- ═══ TOKO ═══ -->
+      <sc-if value="{{ isStores }}" hint-placeholder-val="{{ false }}">
+        <div style="background:white;border-radius:20px;border:1.5px solid #F1F5F9;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse">
+            <thead style="background:#F8FAFC"><tr>
+              <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 20px;text-transform:uppercase">Toko</th>
+              <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 10px;text-transform:uppercase">Pemilik</th>
+              <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 10px;text-transform:uppercase">Produk</th>
+              <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 10px;text-transform:uppercase">Rating</th>
+              <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 10px;text-transform:uppercase">Status</th>
+              <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:14px 10px;text-transform:uppercase">Aksi</th>
+            </tr></thead>
+            <tbody>
+              <sc-for list="{{ storeList }}" as="sl" hint-placeholder-count="5">
+                <tr style="border-bottom:1px solid #F8FAFC">
+                  <td style="padding:14px 20px"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:18px">{{ sl.logo }}</span><span style="font-size:13px;font-weight:700;color:#0F172A">{{ sl.name }}</span></div></td>
+                  <td style="padding:14px 10px;font-size:13px;color:#64748B">{{ sl.ownerUsername }}</td>
+                  <td style="padding:14px 10px;font-size:13px;font-weight:600;color:#0F172A">{{ sl.productCount }}</td>
+                  <td style="padding:14px 10px;font-size:13px;font-weight:700;color:#F59E0B">⭐ {{ sl.rating }}</td>
+                  <td style="padding:14px 10px"><span style="{{ sl.statusStyle }}">{{ sl.statusLabel }}</span></td>
+                  <td style="padding:14px 10px"><button onClick="{{ sl.onVerify }}" style="{{ sl.verifyBtnStyle }}">{{ sl.verifyLabel }}</button></td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </sc-if>
+
+      <!-- ═══ VOUCHER & PROMO ═══ -->
+      <sc-if value="{{ isDiscounts }}" hint-placeholder-val="{{ false }}">
+        <div style="">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+            <!-- Generate Voucher -->
+            <div style="background:white;border-radius:20px;padding:24px;border:1.5px solid #F1F5F9">
+              <div style="font-size:14px;font-weight:800;color:#0F172A;margin-bottom:16px">🎟️ Generate Voucher</div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <input type="text" value="{{ vCode }}" onChange="{{ onVCode }}" placeholder="Kode (kosongkan = auto)" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;outline:none;text-transform:uppercase">
+                <input type="text" value="{{ vLabel }}" onChange="{{ onVLabel }}" placeholder="Label (cth: Diskon Ongkir)" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;outline:none">
+                <select value="{{ vType }}" onChange="{{ onVType }}" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;outline:none;cursor:pointer">
+                  <option value="percent">Persentase (%)</option>
+                  <option value="fixed">Potongan Tetap (Rp)</option>
+                  <option value="freeship">Gratis Ongkir</option>
+                </select>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                  <input type="number" value="{{ vValue }}" onChange="{{ onVValue }}" placeholder="Nilai" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;outline:none">
+                  <input type="number" value="{{ vUsageLimit }}" onChange="{{ onVUsageLimit }}" placeholder="Kuota Penggunaan" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;outline:none">
+                </div>
+                <input type="date" value="{{ vExpiry }}" onChange="{{ onVExpiry }}" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;outline:none">
+                <button onClick="{{ onGenVoucher }}" style="padding:12px;background:linear-gradient(135deg,#1D4ED8,#2563EB);color:white;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer">+ Buat Voucher</button>
+              </div>
+            </div>
+            <!-- Generate Promo -->
+            <div style="background:white;border-radius:20px;padding:24px;border:1.5px solid #F1F5F9">
+              <div style="font-size:14px;font-weight:800;color:#0F172A;margin-bottom:16px">🏷️ Generate Promo</div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <input type="text" value="{{ pCode }}" onChange="{{ onPCode }}" placeholder="Kode (kosongkan = auto)" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;outline:none;text-transform:uppercase">
+                <input type="text" value="{{ pLabel }}" onChange="{{ onPLabel }}" placeholder="Label (cth: Promo Akhir Bulan)" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;outline:none">
+                <select value="{{ pType }}" onChange="{{ onPType }}" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;outline:none;cursor:pointer">
+                  <option value="percent">Persentase (%)</option>
+                  <option value="fixed">Potongan Tetap (Rp)</option>
+                </select>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                  <input type="number" value="{{ pValue }}" onChange="{{ onPValue }}" placeholder="Nilai" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;outline:none">
+                  <input type="number" value="{{ pMinPurchase }}" onChange="{{ onPMinPurchase }}" placeholder="Min. Belanja" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;outline:none">
+                </div>
+                <input type="date" value="{{ pExpiry }}" onChange="{{ onPExpiry }}" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;outline:none">
+                <button onClick="{{ onGenPromo }}" style="padding:12px;background:linear-gradient(135deg,#7C3AED,#A78BFA);color:white;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer">+ Buat Promo</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+            <div style="background:white;border-radius:20px;border:1.5px solid #F1F5F9;overflow:hidden">
+              <div style="padding:16px 20px;border-bottom:1px solid #F1F5F9;font-size:13px;font-weight:800;color:#0F172A">Daftar Voucher</div>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ voucherList }}" as="v" hint-placeholder-count="3">
+                  <div style="padding:14px 20px;border-bottom:1px solid #F8FAFC">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px;font-weight:800;color:#0F172A;font-family:monospace">{{ v.code }}</span><span style="{{ v.statusStyle }}">{{ v.statusLabel }}</span></div>
+                    <div style="font-size:12px;color:#64748B">{{ v.label }} · Terpakai {{ v.usedCount }}/{{ v.usageLimit }} · Exp {{ v.expiryFmt }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background:white;border-radius:20px;border:1.5px solid #F1F5F9;overflow:hidden">
+              <div style="padding:16px 20px;border-bottom:1px solid #F1F5F9;font-size:13px;font-weight:800;color:#0F172A">Daftar Promo</div>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ promoList }}" as="p" hint-placeholder-count="2">
+                  <div style="padding:14px 20px;border-bottom:1px solid #F8FAFC">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px;font-weight:800;color:#0F172A;font-family:monospace">{{ p.code }}</span><span style="{{ p.statusStyle }}">{{ p.statusLabel }}</span></div>
+                    <div style="font-size:12px;color:#64748B">{{ p.label }} · Min. {{ p.minPurchaseFmt }} · Exp {{ p.expiryFmt }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═══ OVERDUE ═══ -->
+      <sc-if value="{{ isOverdue }}" hint-placeholder-val="{{ false }}">
+        <div style="">
+          <div style="background:linear-gradient(135deg,#DC2626,#F87171);border-radius:22px;padding:32px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;margin-bottom:8px">Simulasi Waktu Sistem</div>
+              <div style="font-size:22px;font-weight:900;color:white;margin-bottom:6px">{{ simTimeLabel }}</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.8)">SLA: Instant 3 jam · Next Day 30 jam · Reguler 72 jam. Pesanan yang lewat SLA otomatis refund ke wallet buyer + stok dikembalikan.</div>
+            </div>
+            <button onClick="{{ onSimulateNextDay }}" style="padding:14px 26px;background:white;color:#DC2626;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;white-space:nowrap">⏩ Simulasikan +24 Jam</button>
+          </div>
+
+          <sc-if value="{{ lastSimResult }}" hint-placeholder-val="{{ null }}">
+            <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:16px;padding:18px 22px;margin-bottom:24px">
+              <div style="font-size:13px;font-weight:800;color:#15803D;margin-bottom:6px">✅ Simulasi selesai: {{ lastSimResult }}</div>
+            </div>
+          </sc-if>
+
+          <div style="background:white;border-radius:20px;border:1.5px solid #F1F5F9;overflow:hidden">
+            <div style="padding:18px 22px;border-bottom:1px solid #F1F5F9;font-size:14px;font-weight:800;color:#0F172A">🚨 Kandidat / Riwayat Overdue</div>
+            <table style="width:100%;border-collapse:collapse">
+              <thead style="background:#F8FAFC"><tr>
+                <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:12px 20px;text-transform:uppercase">Pesanan</th>
+                <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:12px 10px;text-transform:uppercase">Metode</th>
+                <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:12px 10px;text-transform:uppercase">Deadline SLA</th>
+                <th style="text-align:left;font-size:11px;font-weight:700;color:#94A3B8;padding:12px 10px;text-transform:uppercase">Status</th>
+              </tr></thead>
+              <tbody>
+                <sc-for list="{{ overdueRows }}" as="o" hint-placeholder-count="3">
+                  <tr style="border-bottom:1px solid #F8FAFC">
+                    <td style="padding:14px 20px;font-size:13px;font-weight:600;color:#2563EB">{{ o.code }}</td>
+                    <td style="padding:14px 10px;font-size:12px;color:#64748B">{{ o.deliveryLabel }}</td>
+                    <td style="padding:14px 10px;font-size:12px;color:#64748B">{{ o.slaFmt }}</td>
+                    <td style="padding:14px 10px"><span style="{{ o.statusStyle }}">{{ o.status }}</span></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+            <sc-if value="{{ noOverdueRows }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;padding:40px;color:#94A3B8;font-size:13px">Tidak ada pesanan overdue saat ini</div></sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═══ PENGATURAN / DOKUMENTASI ═══ -->
+      <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:720px;display:flex;flex-direction:column;gap:20px">
+          <div style="background:white;border-radius:22px;padding:28px;border:1.5px solid #F1F5F9">
+            <div style="font-size:15px;font-weight:800;color:#0F172A;margin-bottom:18px">📋 Dokumentasi Aturan Bisnis (Prototype)</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ businessRules }}" as="br" hint-placeholder-count="6">
+                <div style="display:flex;gap:12px">
+                  <span style="font-size:16px;flex-shrink:0">{{ br.icon }}</span>
+                  <div><div style="font-size:13px;font-weight:700;color:#0F172A">{{ br.title }}</div><div style="font-size:12px;color:#64748B;margin-top:2px;line-height:1.6">{{ br.desc }}</div></div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:white;border-radius:22px;padding:28px;border:1.5px solid #F1F5F9">
+            <div style="font-size:15px;font-weight:800;color:#0F172A;margin-bottom:12px">🔄 Reset Data Demo</div>
+            <div style="font-size:12px;color:#64748B;margin-bottom:16px">Mengembalikan semua data (user, toko, produk, pesanan, wallet) ke kondisi awal seed.</div>
+            <button onClick="{{ onResetDemo }}" style="padding:12px 20px;background:#FEF2F2;color:#DC2626;border:1.5px solid #FCA5A5;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">🗑️ Reset Semua Data</button>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+</sc-if>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ null }}">
+  <div style="position:fixed;top:24px;right:32px;background:#0F172A;color:white;padding:14px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:400;animation:toastIn .25s ease">{{ toast }}</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    ready:false, page:'overview',
+    vCode:'', vLabel:'', vType:'percent', vValue:'', vUsageLimit:100, vExpiry:'',
+    pCode:'', pLabel:'', pType:'percent', pValue:'', pMinPurchase:0, pExpiry:'',
+    lastSimResult:null, toast:null,
+  };
+
+  async componentDidMount() {
+    const Data = await import('./seapedia-data.js');
+    this.Data = Data;
+    this.db = Data.load();
+    this.setState({ ready:true });
+  }
+
+  showToast(msg) { this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast:null }), 2400); }
+  navStyle(active) { return { display:'flex', alignItems:'center', gap:'12px', padding:'10px 14px', borderRadius:'11px', border:'none', cursor:'pointer', width:'100%', fontSize:'13px', fontWeight:600, transition:'all .2s', background: active?'rgba(255,255,255,.14)':'transparent', color: active?'white':'rgba(255,255,255,.5)' }; }
+  statusStyle(s) {
+    const map = { 'Sedang Dikemas':['#F59E0B','#FFFBEB'], 'Menunggu Pengirim':['#EA580C','#FFF7ED'], 'Sedang Dikirim':['#7C3AED','#F5F3FF'], 'Pesanan Selesai':['#16A34A','#F0FDF4'], 'Dikembalikan':['#DC2626','#FEF2F2'] };
+    const [c,b] = map[s] || ['#64748B','#F1F5F9'];
+    return { fontSize:'11px', fontWeight:700, color:c, background:b, padding:'3px 10px', borderRadius:'100px', whiteSpace:'nowrap' };
+  }
+
+  renderVals() {
+    if (!this.state.ready) return { ready:false, notReady:true, blocked:false, showApp:false };
+    const Data = this.Data, db = this.db;
+    const currentUser = db.currentUser;
+    const isAdmin = currentUser && currentUser.activeRole === 'admin';
+    if (!isAdmin) return { ready:true, notReady:false, blocked:true, showApp:false };
+
+    const { page, vCode, vLabel, vType, vValue, vUsageLimit, vExpiry, pCode, pLabel, pType, pValue, pMinPurchase, pExpiry, lastSimResult, toast } = this.state;
+
+    const pageTitles = { overview:'📊 Overview Platform', users:'👥 Monitoring Pengguna', stores:'🏪 Monitoring Toko', discounts:'🎟️ Voucher & Promo', overdue:'🚨 Overdue & Simulasi Waktu', settings:'⚙️ Pengaturan & Dokumentasi' };
+    const pageSubs   = { overview:'Ringkasan aktivitas seluruh marketplace', users:'Semua pengguna terdaftar', stores:'Verifikasi dan pantau performa toko', discounts:'Kelola voucher dan promo', overdue:'Kelola SLA pengiriman & simulasikan waktu', settings:'Aturan bisnis prototype & reset data' };
+
+    const stats = Data.adminStats(db);
+
+    const NAV = [
+      { id:'overview',  icon:'📊', label:'Overview',        badge:null },
+      { id:'users',     icon:'👥', label:'Pengguna',        badge:String(db.users.length) },
+      { id:'stores',    icon:'🏪', label:'Toko',            badge:String(db.stores.length) },
+      { id:'discounts', icon:'🎟️', label:'Voucher & Promo', badge:null },
+      { id:'overdue',   icon:'🚨', label:'Overdue',         badge: stats.overdueCount ? String(stats.overdueCount) : null },
+      { id:'settings',  icon:'⚙️', label:'Pengaturan',      badge:null },
+    ].map(n => ({ ...n, onClick: () => this.setState({ page:n.id }), style: this.navStyle(page===n.id), badgeStyle:{ background: n.id==='overdue' && stats.overdueCount ? '#DC2626' : '#334155', color:'white', fontSize:'10px', fontWeight:800, padding:'2px 7px', borderRadius:'100px' } }));
+
+    const kpiCards = [
+      { label:'Total GMV (Selesai)', icon:'💰', value: Data.fmt(stats.totalGMV), bg:'#F0FDF4' },
+      { label:'Total Pengguna',      icon:'👥', value: String(stats.totalUsers), bg:'#EFF6FF' },
+      { label:'Total Pesanan',       icon:'📦', value: String(stats.totalOrders), bg:'#FFFBEB' },
+      { label:'Toko Terverifikasi',  icon:'✅', value: `${stats.verifiedStores}/${stats.totalStores}`, bg:'#F5F3FF' },
+    ].map(k => ({ ...k, iconStyle: { width:36, height:36, background:k.bg, borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', fontSize:17 } }));
+
+    const orderStatusBreakdown = Data.ORDER_STATUSES.map(s => ({ status:s, count: db.orders.filter(o=>o.status===s).length, style: this.statusStyle(s) }));
+
+    const userList = db.users.map(u => ({
+      ...u,
+      storeName: u.storeId ? (Data.getStore(db, u.storeId)||{}).name || '-' : '-',
+      roleBadges: u.roles.map(r => ({ label:r, style:{ fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'100px', background: r==='admin'?'#FEF2F2':r==='seller'?'#FFFBEB':r==='driver'?'#F0FDF4':'#EFF6FF', color: r==='admin'?'#DC2626':r==='seller'?'#D97706':r==='driver'?'#16A34A':'#2563EB' } })),
+    }));
+
+    const storeList = db.stores.map(s => ({
+      ...s,
+      productCount: db.products.filter(p=>p.storeId===s.id).length,
+      statusLabel: s.verified ? 'Terverifikasi' : 'Menunggu Verifikasi',
+      statusStyle: { fontSize:'11px', fontWeight:700, color: s.verified?'#16A34A':'#F59E0B', background: s.verified?'#F0FDF4':'#FFFBEB', padding:'3px 10px', borderRadius:'100px' },
+      verifyLabel: s.verified ? '✓ Cabut Verifikasi' : 'Verifikasi',
+      verifyBtnStyle: { padding:'6px 14px', background: s.verified?'#FEF2F2':'linear-gradient(135deg,#1D4ED8,#2563EB)', color: s.verified?'#DC2626':'white', border:'none', borderRadius:8, fontSize:'11px', fontWeight:700, cursor:'pointer' },
+      onVerify: () => { s.verified = !s.verified; Data.save(db); this.showToast(s.verified ? `✅ ${s.name} terverifikasi` : `Verifikasi ${s.name} dicabut`); this.forceUpdate(); },
+    }));
+
+    const voucherList = db.vouchers.map(v => {
+      const expired = new Date(v.expiry) < new Date(Data.now(db));
+      const exhausted = v.usedCount >= v.usageLimit;
+      return { ...v, expiryFmt: Data.fmtDate(v.expiry), statusLabel: expired?'Expired':exhausted?'Kuota Habis':'Aktif', statusStyle: { fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'100px', background: expired||exhausted?'#FEF2F2':'#F0FDF4', color: expired||exhausted?'#DC2626':'#16A34A' } };
+    });
+    const promoList = db.promos.map(p => {
+      const expired = new Date(p.expiry) < new Date(Data.now(db));
+      return { ...p, expiryFmt: Data.fmtDate(p.expiry), minPurchaseFmt: Data.fmt(p.minPurchase||0), statusLabel: expired?'Expired':'Aktif', statusStyle: { fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'100px', background: expired?'#FEF2F2':'#F0FDF4', color: expired?'#DC2626':'#16A34A' } };
+    });
+
+    const overdueRows = db.orders.filter(o => !['Pesanan Selesai'].includes(o.status)).filter(o => o.status==='Dikembalikan' || (o.slaDeadline && new Date(Data.now(db)) > new Date(o.slaDeadline))).map(o => ({
+      code:o.code, deliveryLabel: Data.DELIVERY_META[o.deliveryMethod].label, slaFmt: Data.fmtDate(o.slaDeadline), status:o.status, statusStyle: this.statusStyle(o.status),
+    }));
+
+    const BUSINESS_RULES = [
+      { icon:'🏪', title:'Single-Store Checkout', desc:'Satu keranjang hanya boleh berisi produk dari satu toko. Menambah produk dari toko lain akan meminta buyer mengosongkan keranjang dulu.' },
+      { icon:'🧾', title:'PPN 12%', desc:'PPN 12% dihitung dari (subtotal − diskon). Ongkos kirim tidak dikenai pajak dan tidak ikut dipotong diskon (kecuali voucher gratis ongkir).' },
+      { icon:'🎟️', title:'Kombinasi Diskon', desc:'Hanya satu kode diskon (Voucher ATAU Promo) yang bisa dipakai per transaksi.' },
+      { icon:'🚚', title:'SLA Pengiriman', desc:'Instant 3 jam, Next Day 30 jam, Reguler 72 jam — dihitung dari waktu checkout.' },
+      { icon:'↩️', title:'Auto Refund/Return', desc:'Pesanan yang lewat SLA otomatis berstatus "Dikembalikan": dana dikembalikan ke wallet buyer, stok produk dikembalikan, dan tidak dihitung sebagai income Seller.' },
+      { icon:'🛵', title:'Driver Earning', desc:'Driver mendapat 80% dari ongkos kirim setiap job yang diselesaikan.' },
+    ];
+
+    return {
+      ready:true, notReady:false, blocked:false, showApp:true,
+      simTimeLabel: Data.fmtDate(Data.now(db)) + (db.simDaysAdvanced ? ` (+${db.simDaysAdvanced}x simulasi)` : ''),
+      navItems: NAV,
+      pageTitle: pageTitles[page], pageSubtitle: pageSubs[page],
+      isOverview: page==='overview', isUsers: page==='users', isStores: page==='stores', isDiscounts: page==='discounts', isOverdue: page==='overdue', isSettings: page==='settings',
+      kpiCards, orderStatusBreakdown,
+      activeVoucherCount: voucherList.filter(v=>v.statusLabel==='Aktif').length,
+      activePromoCount: promoList.filter(p=>p.statusLabel==='Aktif').length,
+      overdueCount: stats.overdueCount,
+      goOverdue: () => this.setState({ page:'overdue' }),
+      availableJobs: stats.availableJobs, activeJobs: stats.activeJobs, completedJobs: db.deliveryJobs.filter(j=>j.status==='completed').length,
+
+      userList, storeList, voucherList, promoList, overdueRows, noOverdueRows: overdueRows.length===0,
+
+      vCode, vLabel, vType, vValue, vUsageLimit, vExpiry,
+      onVCode: e=>this.setState({vCode:e.target.value}), onVLabel: e=>this.setState({vLabel:e.target.value}), onVType: e=>this.setState({vType:e.target.value}),
+      onVValue: e=>this.setState({vValue:e.target.value}), onVUsageLimit: e=>this.setState({vUsageLimit:e.target.value}), onVExpiry: e=>this.setState({vExpiry:e.target.value}),
+      onGenVoucher: () => {
+        if (!vLabel.trim() || !vExpiry) { this.showToast('⚠️ Lengkapi label dan tanggal expiry'); return; }
+        Data.generateVoucher(db, { code:vCode, label:vLabel.trim(), discountType:vType, value:vValue, usageLimit:vUsageLimit, expiry: new Date(vExpiry).toISOString() });
+        this.setState({ vCode:'', vLabel:'', vValue:'', vExpiry:'' });
+        this.showToast('✅ Voucher dibuat!');
+      },
+
+      pCode, pLabel, pType, pValue, pMinPurchase, pExpiry,
+      onPCode: e=>this.setState({pCode:e.target.value}), onPLabel: e=>this.setState({pLabel:e.target.value}), onPType: e=>this.setState({pType:e.target.value}),
+      onPValue: e=>this.setState({pValue:e.target.value}), onPMinPurchase: e=>this.setState({pMinPurchase:e.target.value}), onPExpiry: e=>this.setState({pExpiry:e.target.value}),
+      onGenPromo: () => {
+        if (!pLabel.trim() || !pExpiry) { this.showToast('⚠️ Lengkapi label dan tanggal expiry'); return; }
+        Data.generatePromo(db, { code:pCode, label:pLabel.trim(), discountType:pType, value:pValue, minPurchase:pMinPurchase, expiry: new Date(pExpiry).toISOString() });
+        this.setState({ pCode:'', pLabel:'', pValue:'', pMinPurchase:0, pExpiry:'' });
+        this.showToast('✅ Promo dibuat!');
+      },
+
+      lastSimResult,
+      onSimulateNextDay: () => {
+        const res = Data.simulateNextDay(db, 24);
+        this.setState({ lastSimResult: res.affected.length ? `${res.affected.length} pesanan overdue diproses (refund + stok dikembalikan): ${res.affected.map(o=>o.code).join(', ')}` : 'Tidak ada pesanan overdue baru pada simulasi ini.' });
+        this.showToast(`⏩ Waktu sistem dimajukan 24 jam`);
+      },
+
+      businessRules: BUSINESS_RULES,
+      onResetDemo: () => { this.Data.reset(); this.db = this.Data.load(); this.showToast('🔄 Data demo direset'); this.forceUpdate(); },
+
+      toast,
+      onLogout: () => { Data.logout(db); },
+    };
+  }
+}
+</script>
+</body>
+</html>

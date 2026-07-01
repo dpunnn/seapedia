@@ -69,8 +69,12 @@ export default function PublicStorePage() {
             <Card key={p.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-3">
                 <Link href={`/products/${p.id}`}>
-                  <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center text-4xl mb-2 hover:bg-gray-200">
-                    📦
+                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center mb-2">
+                    {p.imageUrl ? (
+                      <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-4xl">📦</span>
+                    )}
                   </div>
                   <p className="font-medium text-sm line-clamp-2">{p.name}</p>
                   <p className="text-blue-600 font-bold text-sm mt-1">{formatRupiah(p.price)}</p>

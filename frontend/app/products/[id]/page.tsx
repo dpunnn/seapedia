@@ -71,8 +71,12 @@ export default function ProductDetailPage() {
       </Link>
 
       <div className="grid md:grid-cols-2 gap-8">
-        <div className="aspect-square bg-gray-100 rounded-xl flex items-center justify-center text-8xl">
-          📦
+        <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center">
+          {product.imageUrl ? (
+            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-8xl">📦</span>
+          )}
         </div>
 
         <div className="space-y-4">

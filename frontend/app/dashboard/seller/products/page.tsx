@@ -124,7 +124,13 @@ export default function SellerProductsPage() {
           {products.map(p => (
             <Card key={p.id} className={!p.isActive ? 'opacity-50' : ''}>
               <CardContent className="p-3">
-                <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center text-3xl mb-2">📦</div>
+                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center mb-2">
+                  {p.imageUrl ? (
+                    <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-3xl">📦</span>
+                  )}
+                </div>
                 <p className="font-medium text-sm line-clamp-1">{p.name}</p>
                 <p className="text-blue-600 font-bold text-sm">{formatRupiah(p.price)}</p>
                 <p className="text-xs text-gray-500">Stok: {p.stock}</p>

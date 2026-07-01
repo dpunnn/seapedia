@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: #F8FAFC; color: #0F172A; -webkit-font-smoothing: antialiased; }
+a { text-decoration: none; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)} }
+@keyframes toastIn { from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)} }
+</style>
+</helmet>
+
+<!-- NAVBAR -->
+<nav style="position:sticky;top:0;z-index:100;background:white;height:64px;display:flex;align-items:center;padding:0 32px;gap:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+  <a href="SEAPEDIA.dc.html" style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+    <div style="width:38px;height:38px;background:linear-gradient(135deg,#1E40AF,#3B82F6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">🛍️</div>
+    <span style="font-size:21px;font-weight:900;color:#1D4ED8;letter-spacing:-.5px">SEAPEDIA</span>
+  </a>
+  <div style="flex:1;max-width:480px;margin:0 16px;position:relative">
+    <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none">🔍</span>
+    <input type="text" value="{{ search }}" onChange="{{ onSearch }}" placeholder="Cari produk, toko, brand..."
+      style="width:100%;padding:11px 14px 11px 40px;border:1.5px solid #E2E8F0;border-radius:12px;font-size:13px;outline:none;background:#F8FAFC;transition:all .2s"
+      style-focus="border-color:#2563EB;background:white;box-shadow:0 0 0 3px rgba(37,99,235,.1)">
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0">
+    <a href="{{ cartHref }}" style="position:relative;width:40px;height:40px;border-radius:10px;border:1.5px solid #E2E8F0;background:white;font-size:17px;display:flex;align-items:center;justify-content:center">
+      🛒
+      <sc-if value="{{ cartCount }}" hint-placeholder-val="{{ null }}">
+        <span style="position:absolute;top:-6px;right:-6px;background:#DC2626;color:white;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid white">{{ cartCount }}</span>
+      </sc-if>
+    </a>
+    <sc-if value="{{ isLoggedIn }}" hint-placeholder-val="{{ false }}">
+      <a href="{{ dashboardHref }}" style="padding:9px 16px;border-radius:10px;background:#EFF6FF;color:#1D4ED8;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px">👋 {{ userName }}</a>
+    </sc-if>
+    <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ true }}">
+      <a href="SEAPEDIA Login.dc.html" style="padding:9px 18px;border-radius:10px;border:1.5px solid #2563EB;background:white;color:#2563EB;font-size:13px;font-weight:700">Masuk</a>
+      <a href="SEAPEDIA Login.dc.html" style="padding:9px 18px;border-radius:10px;background:linear-gradient(135deg,#1D4ED8,#2563EB);color:white;font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(37,99,235,.3)">Daftar</a>
+    </sc-if>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<div style="max-width:1280px;margin:0 auto;padding:28px 32px 0">
+  <div style="font-size:12px;color:#94A3B8;margin-bottom:10px"><a href="SEAPEDIA.dc.html" style="color:#94A3B8">Beranda</a> / <span style="color:#0F172A;font-weight:600">Semua Produk</span></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+    <h1 style="font-size:26px;font-weight:900;color:#0F172A;margin:0">Jelajahi Semua Produk</h1>
+    <div style="background:#EFF6FF;border-radius:10px;padding:8px 14px;font-size:12px;color:#1D4ED8;font-weight:600">🛍️ {{ totalCount }} produk dari {{ storeCount }} toko terpercaya</div>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div style="max-width:1280px;margin:0 auto;padding:0 32px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <sc-for list="{{ categories }}" as="cat" hint-placeholder-count="6">
+      <button onClick="{{ cat.onClick }}" style="{{ cat.style }}">{{ cat.emoji }} {{ cat.label }}</button>
+    </sc-for>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span style="font-size:12px;color:#94A3B8;font-weight:600">Urutkan:</span>
+    <select value="{{ sort }}" onChange="{{ onSort }}" style="padding:9px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:13px;font-weight:600;color:#374151;outline:none;cursor:pointer;background:white">
+      <option value="relevance">Paling Relevan</option>
+      <option value="price_asc">Harga Terendah</option>
+      <option value="price_desc">Harga Tertinggi</option>
+      <option value="rating">Rating Tertinggi</option>
+      <option value="sold">Paling Laris</option>
+    </select>
+  </div>
+</div>
+
+<!-- GRID -->
+<div style="max-width:1280px;margin:0 auto;padding:0 32px 24px;position:relative;min-height:200px">
+  <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+      <sc-for list="{{ products }}" as="p" hint-placeholder-count="12">
+        <div style="background:white;border-radius:20px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);transition:all .3s" style-hover="transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,.12)">
+          <a href="{{ p.href }}" style="display:block">
+            <div style="{{ p.imgStyle }}">
+              <span style="font-size:72px">{{ p.emoji }}</span>
+            </div>
+          </a>
+          <div style="padding:15px">
+            <div style="font-size:11px;color:#94A3B8;font-weight:600;margin-bottom:5px">🏪 {{ p.storeName }}</div>
+            <a href="{{ p.href }}" style="display:block">
+              <div style="font-size:13px;font-weight:700;color:#0F172A;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.45;min-height:38px">{{ p.name }}</div>
+            </a>
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px">
+              <span style="color:#F59E0B;font-size:11px">★ {{ p.rating }}</span>
+              <span style="font-size:11px;color:#94A3B8">· {{ p.sold }} terjual</span>
+            </div>
+            <div style="font-size:17px;font-weight:900;color:#2563EB;margin-bottom:12px">{{ p.priceFmt }}</div>
+            <button onClick="{{ p.onAdd }}" style="width:100%;padding:8px;background:#EFF6FF;color:#2563EB;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s" style-hover="background:#2563EB;color:white">+ Keranjang</button>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- Pagination -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:32px">
+      <button onClick="{{ prevPage }}" style="{{ prevBtnStyle }}">← Sebelumnya</button>
+      <sc-for list="{{ pageNumbers }}" as="pg" hint-placeholder-count="3">
+        <button onClick="{{ pg.onClick }}" style="{{ pg.style }}">{{ pg.label }}</button>
+      </sc-for>
+      <button onClick="{{ nextPage }}" style="{{ nextBtnStyle }}">Selanjutnya →</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+    <div style="text-align:center;padding:80px 32px;background:white;border-radius:20px">
+      <div style="font-size:64px;margin-bottom:16px">🔍</div>
+      <div style="font-size:18px;font-weight:700;color:#0F172A;margin-bottom:8px">Produk tidak ditemukan</div>
+      <div style="font-size:14px;color:#64748B">Coba kata kunci atau kategori lain</div>
+    </div>
+  </sc-if>
+</div>
+
+<!-- TOAST -->
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ null }}">
+  <div style="position:fixed;top:80px;right:32px;background:#0F172A;color:white;padding:14px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:200;display:flex;align-items:center;gap:10px;animation:toastIn .25s ease">
+    <span>{{ toast }}</span>
+  </div>
+</sc-if>
+
+<!-- CONFLICT MODAL -->
+<sc-if value="{{ conflict }}" hint-placeholder-val="{{ null }}">
+  <div style="position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="background:white;border-radius:22px;padding:28px;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.3)">
+      <div style="font-size:38px;margin-bottom:14px">🛒</div>
+      <div style="font-size:17px;font-weight:800;color:#0F172A;margin-bottom:8px">Keranjang berisi toko lain</div>
+      <div style="font-size:13px;color:#64748B;line-height:1.7;margin-bottom:22px">SEAPEDIA hanya mengizinkan satu toko per keranjang (single-store checkout). Keranjangmu saat ini berisi produk dari <strong>{{ conflictStoreName }}</strong>. Kosongkan keranjang untuk menambahkan produk dari toko baru?</div>
+      <div style="display:flex;gap:10px">
+        <button onClick="{{ cancelConflict }}" style="flex:1;padding:12px;border:1.5px solid #E2E8F0;border-radius:10px;background:white;font-size:13px;font-weight:700;color:#64748B;cursor:pointer">Batal</button>
+        <button onClick="{{ confirmClearAndAdd }}" style="flex:1;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#1D4ED8,#2563EB);color:white;font-size:13px;font-weight:700;cursor:pointer">Kosongkan &amp; Tambah</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { ready:false, search:'', category:'semua', sort:'relevance', page:1, toast:null, conflict:null };
+
+  async componentDidMount() {
+    const Data = await import('./seapedia-data.js');
+    this.Data = Data;
+    this.db = Data.load();
+    this.setState({ ready:true });
+  }
+
+  persist() { this.Data.save(this.db); this.forceUpdate(); }
+  showToast(msg) { this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast:null }), 2200); }
+
+  renderVals() {
+    if (!this.state.ready) return { hasResults:true, noResults:false, products:[], categories:[], pageNumbers:[], totalCount:0, storeCount:0, isGuest:true };
+    const { search, category, sort, page, toast, conflict } = this.state;
+    const db = this.db, Data = this.Data;
+    const currentUser = db.currentUser;
+
+    const CATS = [
+      { id:'semua', label:'Semua', emoji:'🛍️' },
+      { id:'elektronik', label:'Elektronik', emoji:'⚡' },
+      { id:'fashion', label:'Fashion', emoji:'👗' },
+      { id:'kesehatan', label:'Kesehatan', emoji:'💊' },
+      { id:'buku', label:'Buku', emoji:'📚' },
+      { id:'rumah', label:'Rumah', emoji:'🏠' },
+    ];
+    const categories = CATS.map(c => ({
+      ...c,
+      onClick: () => this.setState({ category:c.id, page:1 }),
+      style: { padding:'9px 16px', borderRadius:'100px', border: category===c.id?'2px solid #2563EB':'2px solid #E2E8F0', background: category===c.id?'#2563EB':'white', color: category===c.id?'white':'#64748B', fontSize:'13px', fontWeight:700, cursor:'pointer', transition:'all .2s' },
+    }));
+
+    const result = Data.listProducts(db, { search, category, sort, page, pageSize:12 });
+    const products = result.items.map(p => ({
+      ...p,
+      priceFmt: Data.fmt(p.price),
+      href: `SEAPEDIA Product.dc.html?id=${p.id}`,
+      imgStyle: { aspectRatio:'1', background:p.bg, display:'flex', alignItems:'center', justifyContent:'center' },
+      onAdd: () => {
+        if (!currentUser || currentUser.activeRole !== 'buyer') { this.showToast('⚠️ Silakan login sebagai Buyer untuk menambah ke keranjang'); return; }
+        const res = Data.addToCart(db, p, 1);
+        if (!res.ok && res.error === 'different_store') { this.setState({ conflict: { product:p, storeName: res.cartStoreName } }); return; }
+        this.Data.save(db);
+        this.showToast(`✅ "${p.name}" ditambahkan ke keranjang!`);
+        this.forceUpdate();
+      },
+    }));
+
+    const pageNumbers = Array.from({ length: result.totalPages }, (_, i) => i+1).map(n => ({
+      label: String(n),
+      onClick: () => this.setState({ page:n }),
+      style: { width:36, height:36, borderRadius:9, border: n===result.page?'none':'1.5px solid #E2E8F0', background: n===result.page?'#2563EB':'white', color: n===result.page?'white':'#64748B', fontSize:13, fontWeight:700, cursor:'pointer' },
+    }));
+
+    const cartCount = db.cart ? db.cart.items.reduce((a,i)=>a+i.qty,0) : null;
+    const dashMap = { buyer:'SEAPEDIA Buyer.dc.html', seller:'SEAPEDIA Seller.dc.html', driver:'SEAPEDIA Driver.dc.html', admin:'SEAPEDIA Admin.dc.html' };
+
+    return {
+      search, sort, category,
+      categories, products,
+      totalCount: db.products.filter(p=>p.active).length,
+      storeCount: db.stores.length,
+      hasResults: result.items.length > 0,
+      noResults: result.items.length === 0,
+      pageNumbers,
+      prevPage: () => this.setState(s => ({ page: Math.max(1, s.page-1) })),
+      nextPage: () => this.setState(s => ({ page: Math.min(result.totalPages, s.page+1) })),
+      prevBtnStyle: { padding:'9px 16px', border:'1.5px solid #E2E8F0', borderRadius:9, background:'white', fontSize:13, fontWeight:600, color:'#64748B', cursor:'pointer' },
+      nextBtnStyle: { padding:'9px 16px', border:'1.5px solid #E2E8F0', borderRadius:9, background:'white', fontSize:13, fontWeight:600, color:'#64748B', cursor:'pointer' },
+      onSearch: e => this.setState({ search:e.target.value, page:1 }),
+      onSort: e => this.setState({ sort:e.target.value }),
+      toast,
+      conflict,
+      conflictStoreName: conflict ? conflict.storeName : '',
+      cancelConflict: () => this.setState({ conflict:null }),
+      confirmClearAndAdd: () => {
+        Data.clearCart(db);
+        Data.addToCart(db, conflict.product, 1);
+        this.setState({ conflict:null });
+        this.showToast('✅ Keranjang lama dikosongkan, produk baru ditambahkan!');
+      },
+      isLoggedIn: !!currentUser,
+      isGuest: !currentUser,
+      userName: currentUser ? currentUser.name.split(' ')[0] : '',
+      dashboardHref: currentUser ? (dashMap[currentUser.activeRole] || 'SEAPEDIA Login.dc.html') : 'SEAPEDIA Login.dc.html',
+      cartCount,
+      cartHref: currentUser && currentUser.activeRole === 'buyer' ? 'SEAPEDIA Buyer.dc.html?page=cart' : 'SEAPEDIA Login.dc.html',
+    };
+  }
+}
+</script>
+</body>
+</html>
