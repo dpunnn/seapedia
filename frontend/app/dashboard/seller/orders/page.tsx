@@ -1,9 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { formatRupiah } from '@/lib/auth';
 import api from '@/lib/api';
@@ -16,13 +13,18 @@ const NAV = [
   { href: '/dashboard/seller/income', label: 'Pendapatan' },
 ];
 
-const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  SEDANG_DIKEMAS: { label: 'Dikemas', color: 'bg-yellow-100 text-yellow-700' },
-  MENUNGGU_PENGIRIM: { label: 'Menunggu Driver', color: 'bg-blue-100 text-blue-700' },
-  SEDANG_DIKIRIM: { label: 'Dikirim', color: 'bg-orange-100 text-orange-700' },
-  PESANAN_SELESAI: { label: 'Selesai', color: 'bg-green-100 text-green-700' },
-  DIKEMBALIKAN: { label: 'Dikembalikan', color: 'bg-red-100 text-red-700' },
+const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
+  SEDANG_DIKEMAS:    { label: 'Sedang Dikemas',    color: '#F59E0B', bg: '#FFFBEB' },
+  MENUNGGU_PENGIRIM: { label: 'Menunggu Pengirim', color: '#EA580C', bg: '#FFF7ED' },
+  SEDANG_DIKIRIM:    { label: 'Sedang Dikirim',    color: '#7C3AED', bg: '#F5F3FF' },
+  PESANAN_SELESAI:   { label: 'Pesanan Selesai',   color: '#16A34A', bg: '#F0FDF4' },
+  DIKEMBALIKAN:      { label: 'Dikembalikan',      color: '#DC2626', bg: '#FEF2F2' },
 };
+
+const FILTER_OPTIONS = [
+  { value: 'all', label: 'Semua Status' },
+  ...Object.entries(STATUS_MAP).map(([v, s]) => ({ value: v, label: s.label })),
+];
 
 export default function SellerOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -32,7 +34,9 @@ export default function SellerOrdersPage() {
   const fetchOrders = () => {
     setLoading(true);
     const params = status !== 'all' ? `?status=${status}` : '';
-    api.get(`/seller/orders${params}`).then(r => setOrders(r.data.data.orders || [])).finally(() => setLoading(false));
+    api.get(`/seller/orders${params}`)
+      .then(r => setOrders(r.data.data.orders || []))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => { fetchOrders(); }, [status]);
@@ -49,48 +53,94 @@ export default function SellerOrdersPage() {
 
   return (
     <DashboardLayout role="SELLER" navItems={NAV}>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Pesanan Masuk</h1>
-        <Select value={status} onValueChange={v => setStatus(v ?? 'all')}>
-          <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Semua</SelectItem>
-            {Object.entries(STATUS_MAP).map(([v, s]) => (
-              <SelectItem key={v} value={v}>{s.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0F172A', margin: 0 }}>Pesanan Masuk</h1>
+          <p style={{ fontSize: 13, color: '#94A3B8', marginTop: 3 }}>Proses pesanan yang masuk</p>
+        </div>
+        <select
+          value={status}
+          onChange={e => setStatus(e.target.value)}
+          style={{
+            padding: '10px 14px', border: '1.5px solid #E2E8F0', borderRadius: 11,
+            fontSize: 13, fontWeight: 600, color: '#374151', background: 'white',
+            outline: 'none', cursor: 'pointer',
+          }}
+        >
+          {FILTER_OPTIONS.map(o => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
       </div>
 
-      {loading ? <p className="text-gray-500">Memuat...</p> : orders.length === 0 ? (
-        <p className="text-gray-500 text-center py-12">Tidak ada pesanan</p>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8', fontSize: 13 }}>Memuat...</div>
+      ) : orders.length === 0 ? (
+        <div style={{
+          textAlign: 'center', padding: '48px 20px', background: 'white',
+          borderRadius: 20, color: '#94A3B8', fontSize: 13, border: '1.5px solid #F1F5F9',
+        }}>
+          Belum ada pesanan masuk
+        </div>
       ) : (
-        <div className="space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {orders.map(o => {
             const info = STATUS_MAP[o.status];
             return (
-              <Card key={o.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-medium text-sm">#{o.id.slice(-8).toUpperCase()}</p>
-                      <p className="text-xs text-gray-500">{o.buyer?.username} · {new Date(o.createdAt).toLocaleDateString('id-ID')}</p>
-                      <p className="text-sm mt-1">
-                        {o.items.map((i: any) => `${i.productName} ×${i.quantity}`).join(', ')}
-                      </p>
-                      <p className="text-blue-600 font-bold text-sm mt-1">{formatRupiah(o.totalAmount)}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      {info && (
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${info.color}`}>{info.label}</span>
-                      )}
-                      {o.status === 'SEDANG_DIKEMAS' && (
-                        <Button size="sm" onClick={() => handleProcess(o.id)}>Proses</Button>
-                      )}
-                    </div>
+              <div key={o.id} style={{
+                background: 'white', borderRadius: 20, padding: 22,
+                border: '1.5px solid #F1F5F9',
+              }}>
+                {/* Order Header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 600 }}>
+                      #{o.id.slice(-8).toUpperCase()}
+                    </span>
+                    {info && (
+                      <span style={{
+                        fontSize: 11, fontWeight: 700, color: info.color, background: info.bg,
+                        padding: '3px 10px', borderRadius: 100, whiteSpace: 'nowrap',
+                      }}>{info.label}</span>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
+                  <span style={{ fontSize: 12, color: '#94A3B8' }}>
+                    {new Date(o.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </span>
+                </div>
+
+                {/* Items */}
+                <div style={{ fontSize: 13, color: '#374151', marginBottom: 14 }}>
+                  {o.items.map((i: any) => `${i.productName} ×${i.quantity}`).join(', ')}
+                </div>
+
+                {/* Buyer */}
+                <div style={{ fontSize: 12, color: '#64748B', marginBottom: 14 }}>
+                  Pembeli: <span style={{ fontWeight: 700, color: '#374151' }}>{o.buyer?.username || '-'}</span>
+                </div>
+
+                {/* Footer */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  paddingTop: 14, borderTop: '1px solid #F1F5F9',
+                }}>
+                  <span style={{ fontSize: 15, fontWeight: 900, color: '#2563EB' }}>
+                    {formatRupiah(o.totalAmount)}
+                  </span>
+                  {o.status === 'SEDANG_DIKEMAS' && (
+                    <button
+                      onClick={() => handleProcess(o.id)}
+                      style={{
+                        padding: '9px 18px',
+                        background: 'linear-gradient(135deg,#1D4ED8,#2563EB)',
+                        color: 'white', border: 'none', borderRadius: 10,
+                        fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                      }}
+                    >Proses Pesanan - Menunggu Pengirim</button>
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>

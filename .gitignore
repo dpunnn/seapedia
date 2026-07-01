@@ -5,3 +5,7 @@ dist/
 .next/
 *.log
 .DS_Store
+
+# Design files — not for repo
+Desain web penjualan/
+*.dc.html

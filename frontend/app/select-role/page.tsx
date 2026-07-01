@@ -1,7 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingBag, ShoppingCart, Store, Truck, Settings, ArrowRight } from 'lucide-react';
+import { ShoppingCart, Store, Truck, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/auth.store';
 import { decodeToken } from '@/lib/auth';
@@ -12,15 +12,41 @@ const ROLE_INFO: Record<string, {
   desc: string;
   route: string;
   icon: React.ElementType;
-  color: string;
-  bg: string;
-  border: string;
-  hoverBorder: string;
+  iconBg: string;
+  iconColor: string;
 }> = {
-  BUYER:  { label: 'Pembeli',   desc: 'Jelajahi dan beli produk dari toko terpercaya', route: '/dashboard/buyer',  icon: ShoppingCart, color: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-200',   hoverBorder: 'hover:border-blue-400' },
-  SELLER: { label: 'Penjual',   desc: 'Kelola toko, produk, dan pesanan Anda',         route: '/dashboard/seller', icon: Store,        color: 'text-green-600',  bg: 'bg-green-50',  border: 'border-green-200',  hoverBorder: 'hover:border-green-400' },
-  DRIVER: { label: 'Pengemudi', desc: 'Ambil dan antar pesanan, dapatkan penghasilan', route: '/dashboard/driver', icon: Truck,        color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', hoverBorder: 'hover:border-orange-400' },
-  ADMIN:  { label: 'Admin',     desc: 'Kelola seluruh platform SEAPEDIA',              route: '/dashboard/admin',  icon: Settings,     color: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-200',    hoverBorder: 'hover:border-red-400' },
+  BUYER:  {
+    label: 'Pembeli',
+    desc: 'Jelajahi dan beli produk dari toko terpercaya',
+    route: '/dashboard/buyer',
+    icon: ShoppingCart,
+    iconBg: '#EFF6FF',
+    iconColor: '#2563EB',
+  },
+  SELLER: {
+    label: 'Penjual',
+    desc: 'Kelola toko, produk, dan pesanan Anda',
+    route: '/dashboard/seller',
+    icon: Store,
+    iconBg: '#F0FDF4',
+    iconColor: '#16A34A',
+  },
+  DRIVER: {
+    label: 'Driver',
+    desc: 'Ambil dan antar pesanan, dapatkan penghasilan',
+    route: '/dashboard/driver',
+    icon: Truck,
+    iconBg: '#FFF7ED',
+    iconColor: '#EA580C',
+  },
+  ADMIN: {
+    label: 'Admin',
+    desc: 'Kelola seluruh platform SEAPEDIA',
+    route: '/dashboard/admin',
+    icon: Settings,
+    iconBg: '#FFF1F2',
+    iconColor: '#E11D48',
+  },
 };
 
 export default function SelectRolePage() {
@@ -46,56 +72,83 @@ export default function SelectRolePage() {
 
   if (!user) return null;
 
+  const displayName = user.email?.split('@')[0] || 'Pengguna';
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shadow-sm">
-            <ShoppingBag className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-2xl font-bold text-primary tracking-tight">SEAPEDIA</span>
+    <div style={{
+      minHeight: '100vh', background: '#F0F5FF',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '24px', fontFamily: 'system-ui, -apple-system, sans-serif',
+    }}>
+      <div style={{
+        background: 'white', borderRadius: '22px', padding: '28px',
+        maxWidth: '420px', width: '100%',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+      }}>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '12px', lineHeight: 1 }}>👋</div>
+          <h2 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', marginBottom: '6px' }}>
+            Halo, {displayName}!
+          </h2>
+          <p style={{ fontSize: '14px', color: '#64748B' }}>
+            Pilih peran untuk sesi ini
+          </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          {/* Header */}
-          <div className="text-center mb-7">
-            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-lg font-bold text-primary">{user.email.charAt(0).toUpperCase()}</span>
-            </div>
-            <h1 className="text-xl font-bold text-gray-900">Masuk sebagai Apa?</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Halo, <span className="font-medium text-gray-700">{user.email.split('@')[0]}</span>. Pilih peran untuk sesi ini.
-            </p>
-          </div>
+        {/* Role cards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {user.roles.map((role) => {
+            const info = ROLE_INFO[role];
+            if (!info) return null;
+            const Icon = info.icon;
+            return (
+              <button
+                key={role}
+                onClick={() => handleSelectRole(role)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '14px',
+                  border: '2px solid #E2E8F0', borderRadius: '14px', padding: '18px',
+                  background: 'white', cursor: 'pointer', textAlign: 'left',
+                  transition: 'all 0.15s', width: '100%',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = '#2563EB';
+                  (e.currentTarget as HTMLButtonElement).style.background = '#EFF6FF';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = '#E2E8F0';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'white';
+                }}
+              >
+                {/* Icon box */}
+                <div style={{
+                  width: '44px', height: '44px', borderRadius: '12px', flexShrink: 0,
+                  background: info.iconBg,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Icon style={{ width: '22px', height: '22px', color: info.iconColor }} />
+                </div>
 
-          {/* Role Cards */}
-          <div className="space-y-3">
-            {user.roles.map((role) => {
-              const info = ROLE_INFO[role];
-              if (!info) return null;
-              const Icon = info.icon;
-              return (
-                <button
-                  key={role}
-                  onClick={() => handleSelectRole(role)}
-                  className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all group ${info.border} ${info.hoverBorder} hover:shadow-md`}
-                >
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${info.bg} group-hover:scale-105 transition-transform`}>
-                    <Icon className={`w-6 h-6 ${info.color}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900">{info.label}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{info.desc}</p>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
-                </button>
-              );
-            })}
-          </div>
+                {/* Label + desc */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', marginBottom: '2px' }}>
+                    {info.label}
+                  </p>
+                  <p style={{ fontSize: '12px', color: '#94A3B8', lineHeight: 1.4 }}>
+                    {info.desc}
+                  </p>
+                </div>
+
+                {/* Arrow */}
+                <span style={{ fontSize: '18px', color: '#CBD5E1', flexShrink: 0 }}>→</span>
+              </button>
+            );
+          })}
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-6">
+        {/* Logout link */}
+        <p style={{ textAlign: 'center', fontSize: '12px', color: '#94A3B8', marginTop: '20px' }}>
           Bukan akun Anda?{' '}
           <button
             onClick={async () => {
@@ -103,7 +156,7 @@ export default function SelectRolePage() {
               useAuthStore.getState().logout();
               router.push('/login');
             }}
-            className="text-primary hover:underline"
+            style={{ color: '#2563EB', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px' }}
           >
             Keluar
           </button>

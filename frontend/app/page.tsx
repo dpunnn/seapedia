@@ -1,366 +1,386 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  ShoppingBag, Star, Package, Store, Truck, ArrowRight, ShieldCheck,
-  Zap, Users, BadgeCheck, Headphones, Heart, ShoppingCart, ChevronRight, Quote
+  ShoppingBag, ShoppingCart, Package, Store, Users, ShieldCheck,
+  Zap, BookOpen, Home, Lock, RotateCcw, MessageCircle, Globe,
+  Share2, AtSign, Tag, Shirt,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { formatRupiah } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth.store';
 import api from '@/lib/api';
 
-// ---------- constants ----------
-const STATS = [
-  { icon: Package,    value: '10.000+', label: 'Produk Tersedia' },
-  { icon: Store,      value: '2.000+',  label: 'Penjual Aktif' },
-  { icon: Users,      value: '50.000+', label: 'Pembeli Puas' },
-  { icon: ShieldCheck,value: '99.9%',   label: 'Transaksi Aman' },
-];
-
-const BRANDS = ['Vivo', 'Lenovo', 'HP', 'Samsung', 'Apple', 'ASUS', 'Nike', 'Adidas', 'Sony', 'Xiaomi', 'Oppo', 'JBL', 'Polytron', 'Sharp'];
-
-const CATEGORIES = [
-  { label: 'Elektronik',    color: 'bg-blue-50',   icon: Zap,         iconColor: 'text-blue-500' },
-  { label: 'Fashion',       color: 'bg-pink-50',   icon: Heart,       iconColor: 'text-pink-500' },
-  { label: 'Kesehatan',     color: 'bg-green-50',  icon: ShieldCheck, iconColor: 'text-green-500' },
-  { label: 'Perlengkapan',  color: 'bg-amber-50',  icon: Package,     iconColor: 'text-amber-500' },
-  { label: 'Toko Semua',    color: 'bg-purple-50', icon: Store,       iconColor: 'text-purple-500' },
-];
-
-const TRUST = [
-  { icon: Truck,       title: 'Pengiriman Cepat',  desc: 'Instant, Next Day, Reguler' },
-  { icon: ShieldCheck, title: 'Bayar Aman',        desc: 'Dana terlindungi hingga pesanan diterima' },
-  { icon: ArrowRight,  title: 'Garansi Return',    desc: 'Refund otomatis ke dompet' },
-  { icon: Headphones,  title: 'Support 24/7',      desc: 'Tim CS siap membantu kapan saja' },
-];
-
-// ---------- countdown ----------
+/* ── countdown ── */
 function useCountdown() {
-  const [time, setTime] = useState({ h: 10, m: 55, s: 0 });
+  const [s, setS] = useState('10:55:00');
   useEffect(() => {
+    const end = new Date(); end.setHours(23, 59, 59, 0);
     const t = setInterval(() => {
-      setTime(prev => {
-        let { h, m, s } = prev;
-        if (s > 0) return { h, m, s: s - 1 };
-        if (m > 0) return { h, m: m - 1, s: 59 };
-        if (h > 0) return { h: h - 1, m: 59, s: 59 };
-        return { h: 10, m: 55, s: 0 };
-      });
+      const d = Math.max(0, end.getTime() - Date.now());
+      const h = String(Math.floor(d / 3600000)).padStart(2, '0');
+      const m = String(Math.floor((d % 3600000) / 60000)).padStart(2, '0');
+      const sc = String(Math.floor((d % 60000) / 1000)).padStart(2, '0');
+      setS(`${h}:${m}:${sc}`);
     }, 1000);
     return () => clearInterval(t);
   }, []);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${pad(time.h)}:${pad(time.m)}:${pad(time.s)}`;
+  return s;
 }
 
-// ---------- review form state ----------
-interface ReviewForm { reviewerName: string; comment: string; rating: number }
+const BRANDS = ['Samsung', 'Apple', 'ASUS', 'Nike', 'Adidas', 'Sony', 'Xiaomi', 'Oppo', 'Vivo', 'Lenovo', 'HP', 'Batik Keris'];
+
+const CATS = [
+  { id: 'elektronik', label: 'Elektronik',   icon: Zap,      color: '#1D4ED8', bg: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', hoverShadow: 'rgba(37,99,235,.18)'  },
+  { id: 'fashion',   label: 'Fashion',       icon: Shirt,    color: '#7C3AED', bg: 'linear-gradient(135deg,#FDF4FF,#EDE9FE)', hoverShadow: 'rgba(124,58,237,.18)' },
+  { id: 'kesehatan', label: 'Kesehatan',     icon: ShieldCheck,color:'#059669', bg: 'linear-gradient(135deg,#F0FDF4,#DCFCE7)', hoverShadow: 'rgba(5,150,105,.18)'  },
+  { id: 'buku',      label: 'Buku',          icon: BookOpen, color: '#EA580C', bg: 'linear-gradient(135deg,#FFF7ED,#FED7AA)', hoverShadow: 'rgba(234,88,12,.18)'  },
+  { id: 'rumah',     label: 'Rumah & Dapur', icon: Home,     color: '#DC2626', bg: 'linear-gradient(135deg,#FFF1F2,#FFE4E6)', hoverShadow: 'rgba(220,38,38,.18)'  },
+];
+
+const TRUST = [
+  { icon: Zap,          title: 'Pengiriman Cepat', desc: 'Express 2 jam untuk area tertentu, gratis ongkir min. Rp 100.000', bg: '#EFF6FF', hoverBorder: '#BFDBFE', hoverShadow: 'rgba(37,99,235,.08)'  },
+  { icon: Lock,         title: 'Bayar Aman',       desc: 'Dana terlindungi hingga pesanan terkonfirmasi diterima pembeli.',   bg: '#F0FDF4', hoverBorder: '#BBF7D0', hoverShadow: 'rgba(5,150,105,.08)'  },
+  { icon: RotateCcw,    title: 'Garansi Return',   desc: 'Return mudah 7 hari, refund otomatis ke dompet SEAPEDIA.',         bg: '#FFF7ED', hoverBorder: '#FED7AA', hoverShadow: 'rgba(234,88,12,.08)'  },
+  { icon: MessageCircle,title: 'Support 24/7',     desc: 'Tim CS siap membantu kapan saja via chat, email, atau telepon.',   bg: '#F5F3FF', hoverBorder: '#E9D5FF', hoverShadow: 'rgba(124,58,237,.08)' },
+];
 
 export default function HomePage() {
   const { user } = useAuthStore();
-  const [products, setProducts]   = useState<any[]>([]);
-  const [reviews, setReviews]     = useState<any[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [wishlist, setWishlist]   = useState<Set<string>>(new Set());
-  const [adding, setAdding]       = useState<string | null>(null);
-  const [reviewForm, setReviewForm] = useState<ReviewForm>({ reviewerName: '', comment: '', rating: 0 });
-  const [reviewLoading, setReviewLoading] = useState(false);
-  const [hoverRating, setHoverRating] = useState(0);
-  const countdown = useCountdown();
+  const countdown  = useCountdown();
+  const [products, setProducts] = useState<any[]>([]);
+  const [reviews, setReviews]   = useState<any[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+  const [adding, setAdding]     = useState<string | null>(null);
+  const [hoverStar, setHoverStar] = useState(0);
+  const [form, setForm] = useState({ reviewerName: '', comment: '', rating: 0 });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     Promise.all([api.get('/products?limit=8'), api.get('/reviews')])
-      .then(([p, r]) => {
-        setProducts(p.data.data.products);
-        setReviews(r.data.data.slice(0, 3));
-      })
+      .then(([p, r]) => { setProducts(p.data.data.products); setReviews(r.data.data.slice(0, 3)); })
       .finally(() => setLoading(false));
   }, []);
 
-  const handleAddToCart = async (productId: string) => {
-    if (!user || user.activeRole !== 'BUYER') {
-      toast.error('Login sebagai Pembeli untuk menambahkan ke keranjang');
-      return;
-    }
-    setAdding(productId);
-    try {
-      await api.post('/buyer/cart/items', { productId, quantity: 1 });
-      toast.success('Ditambahkan ke keranjang');
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Gagal');
-    } finally {
-      setAdding(null);
-    }
+  const handleCart = async (p: any) => {
+    if (!user || user.activeRole !== 'BUYER') { toast.error('Login sebagai Pembeli untuk menambahkan ke keranjang'); return; }
+    setAdding(p.id);
+    try { await api.post('/buyer/cart/items', { productId: p.id, quantity: 1 }); toast.success('Ditambahkan ke keranjang'); }
+    catch (e: any) { toast.error(e.response?.data?.message || 'Gagal'); }
+    finally { setAdding(null); }
   };
 
-  const handleSubmitReview = async (e: React.FormEvent) => {
+  const handleReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reviewForm.rating) { toast.error('Pilih rating bintang'); return; }
-    setReviewLoading(true);
+    if (!form.rating) { toast.error('Pilih rating bintang'); return; }
+    setSubmitting(true);
     try {
-      await api.post('/reviews', reviewForm);
+      await api.post('/reviews', form);
       toast.success('Ulasan berhasil dikirim!');
-      setReviewForm({ reviewerName: '', comment: '', rating: 0 });
+      setForm({ reviewerName: '', comment: '', rating: 0 });
       const r = await api.get('/reviews');
       setReviews(r.data.data.slice(0, 3));
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Gagal mengirim ulasan');
-    } finally {
-      setReviewLoading(false);
-    }
+    } catch (e: any) { toast.error(e.response?.data?.message || 'Gagal'); }
+    finally { setSubmitting(false); }
   };
 
   return (
-    <div className="overflow-x-hidden">
-      {/* ── HERO ── */}
-      <section className="relative bg-gradient-to-br from-blue-800 via-blue-700 to-blue-500 text-white min-h-[480px] flex items-center overflow-hidden">
-        {/* blobs */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-400/20 rounded-full -translate-y-1/3 translate-x-1/3" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-900/30 rounded-full translate-y-1/2 -translate-x-1/4" />
-        </div>
+    <div style={{ background: '#F8FAFC' }}>
 
-        <div className="relative container mx-auto px-4 py-16 grid md:grid-cols-2 gap-10 items-center">
+      {/* ── HERO ── */}
+      <section style={{ background: 'linear-gradient(135deg,#1E3A8A 0%,#1D4ED8 45%,#2563EB 75%,#3B82F6 100%)', padding: '120px 32px 88px', minHeight: 620, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', top: -80, right: 140, width: 520, height: 520, borderRadius: '50%', background: 'rgba(255,255,255,.04)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -140, left: -80, width: 400, height: 400, borderRadius: '50%', background: 'rgba(255,255,255,.04)', pointerEvents: 'none' }} />
+
+        <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 40 }}>
+
           {/* Left */}
-          <div>
-            <div className="inline-flex items-center gap-2 bg-orange-500 rounded-full px-3 py-1 text-xs font-bold mb-5">
-              <Zap className="w-3 h-3 fill-white" /> Flash Sale Aktif! <span className="bg-white/20 rounded px-1.5 py-0.5">{countdown}</span>
+          <div style={{ flex: 1, maxWidth: 580 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.25)', borderRadius: 100, padding: '7px 16px', marginBottom: 28, backdropFilter: 'blur(8px)' }}>
+              <Zap style={{ width: 14, height: 14, color: 'white', fill: 'white' }} />
+              <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>Flash Sale Aktif!</span>
+              <span style={{ background: '#F59E0B', color: 'white', fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 100, letterSpacing: '.5px', fontVariantNumeric: 'tabular-nums' }}>{countdown}</span>
             </div>
-            <h1 className="text-4xl lg:text-5xl font-bold leading-tight mb-4">
-              Belanja Lebih Mudah<br />
-              <span className="text-yellow-300">&amp; Hemat</span> di SEAPEDIA
+
+            <h1 style={{ fontSize: 54, fontWeight: 900, color: 'white', margin: '0 0 16px', lineHeight: 1.08 }}>
+              Belanja Lebih<br />
+              <span style={{ color: '#FCD34D' }}>Mudah &amp; Hemat</span><br />
+              di SEAPEDIA
             </h1>
-            <p className="text-blue-100 text-base mb-7 max-w-sm leading-relaxed">
+
+            <p style={{ fontSize: 17, color: 'rgba(255,255,255,.85)', margin: '0 0 36px', lineHeight: 1.7, maxWidth: 480 }}>
               Ribuan produk dari penjual terpercaya. Pengiriman cepat, harga bersaing, dan transaksi 100% aman terjamin.
             </p>
-            <div className="flex gap-3 flex-wrap mb-6">
-              <Link href="/products">
-                <Button size="lg" className="bg-white text-primary hover:bg-blue-50 font-bold shadow-lg">
-                  <ShoppingCart className="w-4 h-4 mr-1.5" /> Belanja Sekarang
-                </Button>
+
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <Link href="/products" style={{ padding: '15px 30px', background: 'white', color: '#1D4ED8', fontSize: 15, fontWeight: 800, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 16px rgba(0,0,0,.2)' }}>
+                <ShoppingCart style={{ width: 18, height: 18 }} /> Belanja Sekarang
               </Link>
-              <Link href="/register">
-                <Button size="lg" variant="outline" className="border-white/40 text-white bg-white/10 hover:bg-white/20 font-semibold">
-                  Daftar Gratis <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
+              <Link href="/register" style={{ padding: '15px 30px', background: 'rgba(255,255,255,.12)', color: 'white', fontSize: 15, fontWeight: 700, borderRadius: 12, border: '2px solid rgba(255,255,255,.35)', backdropFilter: 'blur(4px)', display: 'inline-flex', alignItems: 'center' }}>
+                Daftar Gratis →
               </Link>
             </div>
-            {/* trust badges */}
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-blue-100">
-              <span className="flex items-center gap-1"><BadgeCheck className="w-3.5 h-3.5 text-green-300" /> Gratis ongkir min.</span>
-              <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-green-300" /> Bayar aman</span>
-              <span className="flex items-center gap-1"><ArrowRight className="w-3.5 h-3.5 text-green-300" /> Garansi return</span>
-              <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-yellow-300 text-yellow-300" /> Rating 4.9/5</span>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginTop: 32, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,.8)' }}>✅ Gratis ongkir</span>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,.8)' }}>🔒 Bayar aman</span>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,.8)' }}>↩️ Garansi return</span>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,.8)' }}>⭐ Rating 4.9/5</span>
             </div>
           </div>
 
-          {/* Right — illustration card */}
-          <div className="hidden md:flex flex-col items-center justify-center relative">
-            <div className="w-56 h-56 bg-yellow-400 rounded-3xl flex items-center justify-center shadow-2xl relative">
-              <ShoppingBag className="w-24 h-24 text-yellow-600" />
-              <div className="absolute -bottom-4 -right-4 w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center">
-                <Package className="w-7 h-7 text-blue-500" />
+          {/* Right — CSS mascot */}
+          <div style={{ flexShrink: 0, width: 400, height: 460, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'absolute', width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,.14),transparent 70%)', pointerEvents: 'none' }} />
+
+            {/* Mascot */}
+            <div style={{ position: 'relative', width: 300, height: 360, zIndex: 2, animation: 'charFloat 4s ease-in-out infinite' }}>
+              {/* shadow */}
+              <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', width: 170, height: 26, borderRadius: '50%', background: 'rgba(0,0,0,.28)', filter: 'blur(6px)' }} />
+              {/* left arm */}
+              <div style={{ position: 'absolute', top: 118, left: 22, width: 34, height: 78, borderRadius: 17, background: 'linear-gradient(135deg,#FCD34D,#F59E0B)', transform: 'rotate(-35deg)', boxShadow: 'inset -4px -4px 8px rgba(0,0,0,.12),inset 4px 4px 8px rgba(255,255,255,.35)', zIndex: 1 }} />
+              {/* right arm */}
+              <div style={{ position: 'absolute', top: 150, right: 24, width: 32, height: 70, borderRadius: 16, background: 'linear-gradient(135deg,#FCD34D,#F59E0B)', transform: 'rotate(28deg)', boxShadow: 'inset -4px -4px 8px rgba(0,0,0,.12),inset 4px 4px 8px rgba(255,255,255,.35)', zIndex: 1 }} />
+              {/* legs */}
+              <div style={{ position: 'absolute', bottom: 26, left: 96, width: 34, height: 46, borderRadius: 14, background: 'linear-gradient(160deg,#1E3A8A,#1D4ED8)' }} />
+              <div style={{ position: 'absolute', bottom: 26, right: 96, width: 34, height: 46, borderRadius: 14, background: 'linear-gradient(160deg,#1E3A8A,#1D4ED8)' }} />
+              {/* shoes */}
+              <div style={{ position: 'absolute', bottom: 14, left: 88, width: 48, height: 22, borderRadius: 12, background: '#0F172A' }} />
+              <div style={{ position: 'absolute', bottom: 14, right: 88, width: 48, height: 22, borderRadius: 12, background: '#0F172A' }} />
+              {/* body */}
+              <div style={{ position: 'absolute', top: 96, left: '50%', transform: 'translateX(-50%)', width: 190, height: 170, borderRadius: 32, background: 'linear-gradient(155deg,#FDE68A 0%,#FBBF24 45%,#EA8C0E 100%)', boxShadow: '0 24px 48px rgba(180,83,9,.35),inset 0 4px 12px rgba(255,255,255,.4)', zIndex: 2 }}>
+                {/* gloss */}
+                <div style={{ position: 'absolute', top: 14, left: 20, width: 70, height: 36, borderRadius: '50%', background: 'radial-gradient(ellipse,rgba(255,255,255,.55),transparent 70%)' }} />
+                {/* tape */}
+                <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 26, height: '100%', background: 'linear-gradient(90deg,rgba(255,255,255,.35),rgba(255,255,255,.15))' }} />
+                {/* eyes */}
+                <div style={{ position: 'absolute', top: 56, left: 44, width: 26, height: 30, borderRadius: '50%', background: 'white', boxShadow: '0 2px 4px rgba(0,0,0,.15)' }}>
+                  <div style={{ position: 'absolute', top: 9, left: 8, width: 11, height: 11, borderRadius: '50%', background: '#0F172A' }} />
+                </div>
+                <div style={{ position: 'absolute', top: 56, right: 44, width: 26, height: 30, borderRadius: '50%', background: 'white', boxShadow: '0 2px 4px rgba(0,0,0,.15)' }}>
+                  <div style={{ position: 'absolute', top: 9, left: 8, width: 11, height: 11, borderRadius: '50%', background: '#0F172A' }} />
+                </div>
+                {/* cheeks */}
+                <div style={{ position: 'absolute', top: 92, left: 30, width: 20, height: 12, borderRadius: '50%', background: 'rgba(239,68,68,.35)' }} />
+                <div style={{ position: 'absolute', top: 92, right: 30, width: 20, height: 12, borderRadius: '50%', background: 'rgba(239,68,68,.35)' }} />
+                {/* smile */}
+                <div style={{ position: 'absolute', top: 96, left: '50%', transform: 'translateX(-50%)', width: 44, height: 22, border: '4px solid #0F172A', borderTop: 'none', borderRadius: '0 0 44px 44px' }} />
+              </div>
+              {/* shopping bag in right hand */}
+              <div style={{ position: 'absolute', top: 198, right: 6, width: 46, height: 52, borderRadius: 8, background: 'linear-gradient(160deg,#3B82F6,#1D4ED8)', boxShadow: '0 8px 16px rgba(29,78,216,.4)', zIndex: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ShoppingBag style={{ width: 22, height: 22, color: 'white' }} />
               </div>
             </div>
-            {/* floating card */}
-            <div className="absolute bottom-0 right-0 bg-white text-gray-800 rounded-2xl shadow-xl px-4 py-3 text-sm">
-              <p className="text-xs text-gray-500">Pesanan Selesai</p>
-              <p className="font-bold text-green-600">+Rp 1.250.000</p>
+
+            {/* Notif card */}
+            <div style={{ position: 'absolute', bottom: 36, right: -10, background: 'white', borderRadius: 14, padding: '12px 16px', width: 210, boxShadow: '0 10px 32px rgba(0,0,0,.18)', animation: 'float3 5s ease-in-out 1.5s infinite', display: 'flex', alignItems: 'center', gap: 10, zIndex: 3 }}>
+              <div style={{ width: 36, height: 36, background: '#F0FDF4', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <ShoppingBag style={{ width: 18, height: 18, color: '#16A34A' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: '#64748B' }}>Pesanan Selesai!</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#16A34A' }}>+Rp 1.250.000</div>
+              </div>
             </div>
-            {/* online badge */}
-            <div className="absolute top-0 right-0 bg-white/90 text-gray-700 rounded-full px-3 py-1 text-xs font-medium flex items-center gap-1.5 shadow">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              1.247 orang online
+
+            {/* Live badge */}
+            <div style={{ position: 'absolute', top: 24, left: -16, background: 'rgba(255,255,255,.96)', borderRadius: 12, padding: '9px 14px', boxShadow: '0 8px 24px rgba(0,0,0,.15)', display: 'flex', alignItems: 'center', gap: 8, animation: 'float2 4.5s ease-in-out 2s infinite', zIndex: 3 }}>
+              <div style={{ width: 8, height: 8, background: '#16A34A', borderRadius: '50%', animation: 'pulseDot 1.5s ease-in-out infinite', flexShrink: 0 }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#0F172A', whiteSpace: 'nowrap' }}>1.247 orang online</span>
             </div>
           </div>
         </div>
 
-        {/* wave */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
-          <svg viewBox="0 0 1440 60" className="w-full h-12 fill-gray-50">
-            <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" />
+        {/* Wave */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, pointerEvents: 'none' }}>
+          <svg viewBox="0 0 1440 80" style={{ display: 'block', width: '100%', height: 80 }} preserveAspectRatio="none">
+            <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="#F8FAFC" />
           </svg>
         </div>
       </section>
 
       {/* ── STATS ── */}
-      <section className="bg-white border-b border-gray-100 shadow-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {STATS.map(({ icon: Icon, value, label }) => (
-              <div key={label} className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xl font-bold text-gray-900 leading-tight">{value}</p>
-                  <p className="text-xs text-gray-500">{label}</p>
-                </div>
+      <section style={{ background: 'white', borderBottom: '1px solid #F1F5F9' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)' }}>
+          {[
+            { icon: Package,     value: '10.000+', label: 'Produk Tersedia', bg: '#EFF6FF' },
+            { icon: Store,       value: '2.000+',  label: 'Penjual Aktif',   bg: '#F5F3FF' },
+            { icon: Users,       value: '50.000+', label: 'Pembeli Puas',    bg: '#FFFBEB' },
+            { icon: ShieldCheck, value: '99.9%',   label: 'Transaksi Aman',  bg: '#F0FDF4' },
+          ].map(({ icon: Icon, value, label, bg }, i) => (
+            <div key={label} style={{ padding: '28px 32px', display: 'flex', alignItems: 'center', gap: 16, borderRight: i < 3 ? '1px solid #F1F5F9' : 'none' }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon style={{ width: 26, height: 26, color: '#2563EB' }} />
               </div>
-            ))}
-          </div>
+              <div>
+                <div style={{ fontSize: 26, fontWeight: 900, color: '#0F172A', lineHeight: 1 }}>{value}</div>
+                <div style={{ fontSize: 12, color: '#64748B', fontWeight: 500, marginTop: 2 }}>{label}</div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* ── BRAND TICKER ── */}
-      <div className="bg-primary py-3 overflow-hidden">
-        <div className="flex animate-marquee whitespace-nowrap">
+      <div style={{ background: '#1D4ED8', padding: '10px 0', overflow: 'hidden' }}>
+        <div className="animate-marquee">
           {[...BRANDS, ...BRANDS].map((b, i) => (
-            <span key={i} className="mx-6 text-white/80 text-sm font-medium flex items-center gap-2">
-              <Zap className="w-3 h-3 text-yellow-300 fill-yellow-300 flex-shrink-0" /> {b}
+            <span key={i} style={{ padding: '0 28px', fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.7)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Tag style={{ width: 12, height: 12, color: '#FCD34D' }} /> {b}
             </span>
           ))}
         </div>
       </div>
 
-      {/* ── CATEGORIES ── */}
-      <section className="container mx-auto px-4 py-12">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Jelajahi Kategori</h2>
-          <Link href="/products" className="text-sm text-primary hover:underline flex items-center gap-1">
-            Lihat semua <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-          {CATEGORIES.map(({ label, color, icon: Icon, iconColor }) => (
-            <Link key={label} href={`/products?search=${label === 'Toko Semua' ? '' : label}`}>
-              <div className={`${color} rounded-2xl p-4 flex flex-col items-center gap-2 hover:shadow-md transition-all cursor-pointer hover:-translate-y-0.5`}>
-                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                  <Icon className={`w-6 h-6 ${iconColor}`} />
+      {/* ── KATEGORI ── */}
+      <section style={{ padding: '48px 32px 32px', background: '#F8FAFC' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 900, color: '#0F172A', margin: 0 }}>Jelajahi Kategori</h2>
+            <Link href="/products" style={{ fontSize: 14, color: '#2563EB', fontWeight: 600 }}>Lihat semua →</Link>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 16 }}>
+            {CATS.map(({ id, label, icon: Icon, color, bg }) => (
+              <Link key={id} href={`/products?search=${id}`}
+                style={{ background: bg, borderRadius: 20, padding: '28px 16px', textAlign: 'center', cursor: 'pointer', border: '1.5px solid transparent', transition: 'all .3s', display: 'block' }}>
+                <div style={{ width: 52, height: 52, background: 'white', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', boxShadow: '0 2px 8px rgba(0,0,0,.08)' }}>
+                  <Icon style={{ width: 26, height: 26, color }} />
                 </div>
-                <span className="text-xs font-semibold text-gray-700 text-center">{label}</span>
-              </div>
-            </Link>
-          ))}
+                <div style={{ fontWeight: 800, fontSize: 15, color }}>{label}</div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ── FLASH SALE ── */}
-      <section className="mx-4 md:mx-8 lg:mx-16 mb-10 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl overflow-hidden">
-        <div className="p-5 flex items-center gap-4">
-          <div className="flex items-center gap-2 text-white">
-            <Zap className="w-5 h-5 fill-white" />
-            <span className="text-lg font-bold">FLASH SALE</span>
-          </div>
-          <div className="bg-white/20 rounded-lg px-3 py-1.5 font-mono font-bold text-white text-base">
-            {countdown}
-          </div>
-          <span className="text-white/80 text-sm">Penawaran terbatas! Berakhir dalam:</span>
-          <Link href="/products" className="ml-auto">
-            <Button size="sm" className="bg-white text-orange-500 hover:bg-orange-50 font-semibold">
-              Lihat Semua <ChevronRight className="w-4 h-4 ml-0.5" />
-            </Button>
-          </Link>
-        </div>
-        {!loading && (
-          <div className="px-5 pb-5 grid grid-cols-2 md:grid-cols-4 gap-3">
-            {products.slice(0, 4).map((p, i) => (
-              <Link key={p.id} href={`/products/${p.id}`}>
-                <div className="bg-white rounded-xl overflow-hidden hover:shadow-md transition-shadow">
-                  <div className="aspect-square bg-gray-50 relative flex items-center justify-center">
-                    {p.imageUrl
-                      ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
-                      : <Package className="w-10 h-10 text-gray-300" />
-                    }
-                    <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded">
-                      -{10 + i * 5}%
-                    </span>
-                  </div>
-                  <div className="p-2">
-                    <p className="text-xs font-medium text-gray-800 line-clamp-1">{p.name}</p>
-                    <p className="text-sm font-bold text-red-500 mt-0.5">{formatRupiah(p.price)}</p>
-                  </div>
+      <section style={{ padding: '0 32px 48px', background: '#F8FAFC' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', background: 'linear-gradient(135deg,#EA580C 0%,#DC2626 55%,#9F1239 100%)', borderRadius: 24, padding: '28px 32px', overflow: 'hidden', position: 'relative' }}>
+          <div style={{ position: 'absolute', top: -50, right: -50, width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,.06)', pointerEvents: 'none' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div>
+                <div style={{ color: 'white', fontSize: 24, fontWeight: 900, lineHeight: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Zap style={{ width: 22, height: 22, fill: 'white' }} /> FLASH SALE
                 </div>
-              </Link>
-            ))}
+                <div style={{ color: 'rgba(255,255,255,.75)', fontSize: 12, marginTop: 2, fontWeight: 500 }}>Penawaran terbatas! Berakhir dalam:</div>
+              </div>
+              <div style={{ background: 'rgba(0,0,0,.25)', borderRadius: 12, padding: '10px 18px' }}>
+                <span style={{ color: 'white', fontSize: 22, fontWeight: 900, letterSpacing: 2, fontVariantNumeric: 'tabular-nums' }}>{countdown}</span>
+              </div>
+            </div>
+            <Link href="/products" style={{ color: 'white', background: 'rgba(255,255,255,.18)', border: '1px solid rgba(255,255,255,.3)', borderRadius: 10, padding: '9px 18px', fontSize: 13, fontWeight: 700 }}>
+              Lihat Semua →
+            </Link>
           </div>
-        )}
-      </section>
-
-      {/* ── FEATURED PRODUCTS ── */}
-      <section className="container mx-auto px-4 pb-14">
-        <div className="flex items-center gap-1 mb-1">
-          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-          <span className="text-xs font-semibold text-yellow-600 uppercase tracking-wide">Pilihan Terbaik</span>
-        </div>
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-2xl font-bold text-gray-900">Produk Terbaru</h2>
-          <Link href="/products" className="text-sm text-primary hover:underline flex items-center gap-1">
-            Lihat semua <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-72 rounded-2xl" />)}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {products.map((p) => (
-              <div key={p.id} className="group bg-white rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 overflow-hidden">
-                <Link href={`/products/${p.id}`}>
-                  <div className="aspect-square bg-gray-50 relative overflow-hidden flex items-center justify-center">
-                    {p.imageUrl
-                      ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      : <Package className="w-14 h-14 text-gray-200" />
-                    }
-                    <span className="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded">TERLARIS</span>
-                    <button
-                      onClick={e => { e.preventDefault(); setWishlist(s => { const n = new Set(s); n.has(p.id) ? n.delete(p.id) : n.add(p.id); return n; }); }}
-                      className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow hover:scale-110 transition-transform"
-                    >
-                      <Heart className={`w-3.5 h-3.5 ${wishlist.has(p.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
-                    </button>
+          {!loading && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, position: 'relative' }}>
+              {products.slice(0, 4).map((p, i) => (
+                <Link key={p.id} href={`/products/${p.id}`} style={{ background: 'rgba(255,255,255,.12)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,.18)', borderRadius: 16, padding: 16, display: 'block' }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{ width: 62, height: 62, background: 'rgba(255,255,255,.9)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                      {p.imageUrl
+                        ? <img src={p.imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <Package style={{ width: 28, height: 28, color: '#94A3B8' }} />
+                      }
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ color: 'white', fontWeight: 600, fontSize: 13, lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{p.name}</div>
+                      <div style={{ color: '#FCD34D', fontWeight: 800, fontSize: 16, marginTop: 4 }}>{formatRupiah(p.price)}</div>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 12, background: 'rgba(0,0,0,.2)', borderRadius: 8, padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ background: '#FCD34D', color: '#7C2D12', borderRadius: 5, padding: '2px 8px', fontSize: 11, fontWeight: 800 }}>-{10 + i * 5}%</span>
+                    <span style={{ background: 'white', color: '#DC2626', borderRadius: 6, padding: '5px 12px', fontSize: 11, fontWeight: 700 }}>Beli</span>
                   </div>
                 </Link>
-                <div className="p-3">
-                  <p className="text-xs text-gray-400 flex items-center gap-1 mb-1">
-                    <Store className="w-3 h-3" /> {p.store?.name}
-                  </p>
-                  <Link href={`/products/${p.id}`}>
-                    <p className="font-semibold text-sm text-gray-800 line-clamp-2 leading-snug hover:text-primary transition-colors">{p.name}</p>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── PRODUCTS ── */}
+      <section id="products" style={{ padding: '0 32px 64px', background: '#F8FAFC' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 6 }}>✨ PILIHAN TERBAIK</div>
+              <h2 style={{ fontSize: 28, fontWeight: 900, color: '#0F172A', margin: 0 }}>Produk Terbaru</h2>
+            </div>
+            <Link href="/products" style={{ fontSize: 14, color: '#2563EB', fontWeight: 600 }}>Lihat semua →</Link>
+          </div>
+
+          {loading ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
+              {Array(8).fill(0).map((_, i) => (
+                <div key={i} style={{ background: 'white', borderRadius: 20, height: 340, animation: 'shimmer 1.5s infinite', backgroundImage: 'linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%)', backgroundSize: '400px 100%' }} />
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
+              {products.map((p) => (
+                <div key={p.id} style={{ background: 'white', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,.06)', position: 'relative', transition: 'all .3s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-6px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 16px 40px rgba(0,0,0,.12)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(0,0,0,.06)'; }}
+                >
+                  <Link href={`/products/${p.id}`} style={{ position: 'relative', aspectRatio: '1', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', textDecoration: 'none' }}>
+                    {p.imageUrl
+                      ? <img src={p.imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <Package style={{ width: 78, height: 78, color: '#CBD5E1' }} />
+                    }
+                    <div style={{ position: 'absolute', top: 12, left: 12, background: 'linear-gradient(135deg,#1D4ED8,#3B82F6)', color: 'white', fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 7, letterSpacing: '.5px' }}>TERLARIS</div>
                   </Link>
-                  {/* dummy stars */}
-                  <div className="flex items-center gap-0.5 my-1.5">
-                    {Array(5).fill(0).map((_, i) => (
-                      <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    ))}
-                    <span className="text-xs text-gray-400 ml-1">4.9</span>
-                  </div>
-                  <p className="text-primary font-bold text-sm">{formatRupiah(p.price)}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-gray-400">Stok: {p.stock}</span>
-                    <button
-                      onClick={() => handleAddToCart(p.id)}
-                      disabled={p.stock === 0 || adding === p.id}
-                      className="text-xs bg-primary text-white px-2.5 py-1 rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                    >
-                      {adding === p.id ? '...' : p.stock === 0 ? 'Habis' : '+ Keranjang'}
-                    </button>
+                  <button
+                    onClick={() => setWishlist(s => { const n = new Set(s); n.has(p.id) ? n.delete(p.id) : n.add(p.id); return n; })}
+                    style={{ position: 'absolute', top: 10, right: 10, width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,.9)', border: 'none', cursor: 'pointer', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,.12)', zIndex: 2 }}
+                  >
+                    {wishlist.has(p.id) ? '❤️' : '🤍'}
+                  </button>
+                  <div style={{ padding: 16 }}>
+                    <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 600, marginBottom: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Store style={{ width: 11, height: 11 }} /> {p.store?.name}
+                    </div>
+                    <Link href={`/products/${p.id}`} style={{ display: 'block', textDecoration: 'none' }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.45, minHeight: 41 }}>{p.name}</div>
+                    </Link>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+                      <span style={{ color: '#F59E0B', fontSize: 11, letterSpacing: 1 }}>★★★★★</span>
+                      <span style={{ fontSize: 11, color: '#94A3B8' }}>4.9 · terjual</span>
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: '#2563EB', marginBottom: 12 }}>{formatRupiah(p.price)}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, color: p.stock <= 5 ? '#DC2626' : '#16A34A', background: p.stock <= 5 ? '#FEF2F2' : '#F0FDF4' }}>
+                        Stok: {p.stock}
+                      </div>
+                      <button
+                        onClick={() => handleCart(p)}
+                        disabled={p.stock === 0 || adding === p.id}
+                        style={{ background: '#2563EB', color: 'white', border: 'none', borderRadius: 8, padding: '7px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: p.stock === 0 ? 0.5 : 1 }}
+                      >
+                        {adding === p.id ? '...' : p.stock === 0 ? 'Habis' : '+ Keranjang'}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </section>
 
       {/* ── TRUST ── */}
-      <section className="bg-gray-50 border-y border-gray-100 py-8">
-        <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6">
-          {TRUST.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="flex items-center gap-3">
-              <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Icon className="w-5 h-5 text-primary" />
+      <section style={{ padding: '0 32px 64px', background: '#F8FAFC' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
+          {TRUST.map(({ icon: Icon, title, desc, bg }) => (
+            <div key={title} style={{ background: 'white', borderRadius: 18, padding: 24, border: '1.5px solid #F1F5F9', display: 'flex', alignItems: 'flex-start', gap: 16, transition: 'all .3s' }}>
+              <div style={{ width: 48, height: 48, background: bg, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon style={{ width: 24, height: 24, color: '#2563EB' }} />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-800">{title}</p>
-                <p className="text-xs text-gray-500">{desc}</p>
+                <div style={{ fontWeight: 800, fontSize: 15, color: '#0F172A', marginBottom: 5 }}>{title}</div>
+                <div style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6 }}>{desc}</div>
               </div>
             </div>
           ))}
@@ -368,155 +388,110 @@ export default function HomePage() {
       </section>
 
       {/* ── REVIEWS ── */}
-      <section className="py-14 px-4">
-        <div className="container mx-auto">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-xs font-semibold text-yellow-600 uppercase tracking-wide">Ulasan Pengguna</span>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900">Apa Kata Mereka?</h2>
-            <div className="flex items-center justify-center gap-1.5 mt-2">
-              {Array(5).fill(0).map((_, i) => <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}
-              <span className="text-sm font-bold text-gray-700 ml-1">4.9</span>
-              <span className="text-sm text-gray-400">dari 50.000+ ulasan</span>
+      <section id="reviews" style={{ background: 'white', padding: '64px 32px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>💬 ULASAN PENGGUNA</div>
+            <h2 style={{ fontSize: 34, fontWeight: 900, color: '#0F172A', margin: '0 0 10px' }}>Apa Kata Mereka?</h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+              <span style={{ color: '#F59E0B', fontSize: 22 }}>★★★★★</span>
+              <span style={{ fontSize: 20, fontWeight: 800, color: '#0F172A' }}>4.9</span>
+              <span style={{ fontSize: 14, color: '#64748B' }}>dari 50.000+ ulasan</span>
             </div>
           </div>
 
-          {/* Review cards */}
-          <div className="grid md:grid-cols-3 gap-5 mb-8">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24, marginBottom: 40 }}>
             {reviews.length === 0 ? (
-              <p className="text-sm text-gray-400 col-span-3 text-center py-4">Belum ada ulasan. Jadilah yang pertama!</p>
-            ) : reviews.map((r) => (
-              <Card key={r.id} className="border-gray-100 hover:shadow-md transition-shadow">
-                <CardContent className="p-5">
-                  <Quote className="w-6 h-6 text-primary/20 mb-3 fill-primary/10" />
-                  <div className="flex items-center gap-1 mb-2">
-                    {Array(5).fill(0).map((_, i) => (
-                      <Star key={i} className={`w-3.5 h-3.5 ${i < r.rating ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-100 text-gray-200'}`} />
-                    ))}
-                  </div>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4 italic">&ldquo;{r.comment}&rdquo;</p>
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                      <span className="text-xs font-bold text-primary">{r.reviewerName?.charAt(0)?.toUpperCase()}</span>
+              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '32px', color: '#94A3B8' }}>Belum ada ulasan. Jadilah yang pertama!</div>
+            ) : reviews.map((r, i) => {
+              const colors = ['#2563EB', '#7C3AED', '#059669'];
+              return (
+                <div key={r.id} style={{ background: '#F8FAFC', borderRadius: 20, padding: 28, border: '1.5px solid #F1F5F9', transition: 'all .3s' }}>
+                  <div style={{ fontSize: 44, color: '#DBEAFE', lineHeight: .8, fontWeight: 900, marginBottom: 14 }}>"</div>
+                  <div style={{ color: '#F59E0B', fontSize: 14, letterSpacing: 2, marginBottom: 12 }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
+                  <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.75, margin: '0 0 22px', fontStyle: 'italic' }}>{r.comment}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 42, height: 42, borderRadius: '50%', background: colors[i % colors.length], display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
+                      {r.reviewerName?.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">{r.reviewerName}</p>
-                      <p className="text-xs text-gray-400">Pembeli SEAPEDIA</p>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: '#0F172A' }}>{r.reviewerName}</div>
+                      <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 1 }}>Pembeli SEAPEDIA</div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              );
+            })}
           </div>
 
-          {/* Review form */}
-          <div className="max-w-2xl mx-auto bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-            <div className="flex items-center gap-2 mb-1">
-              <Star className="w-4 h-4 fill-primary text-primary" />
-              <h3 className="font-bold text-gray-900">Bagikan Pengalamanmu</h3>
-            </div>
-            <p className="text-xs text-gray-500 mb-5">Ulasanmu membantu jutaan pembeli membuat keputusan yang lebih baik!</p>
-            <form onSubmit={handleSubmitReview} className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+          {/* Review Form */}
+          <div style={{ background: 'linear-gradient(135deg,#F0F7FF,#F5F0FF)', borderRadius: 24, padding: 36, border: '1.5px solid #DBEAFE' }}>
+            <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0F172A', margin: '0 0 6px' }}>💌 Bagikan Pengalamanmu</h3>
+            <p style={{ fontSize: 14, color: '#64748B', margin: '0 0 28px' }}>Ulasanmu membantu jutaan pembeli membuat keputusan yang lebih baik!</p>
+            <form onSubmit={handleReview} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div>
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">Nama</label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                    placeholder="Nama lengkapmu..."
-                    value={reviewForm.reviewerName}
-                    onChange={e => setReviewForm(f => ({ ...f, reviewerName: e.target.value }))}
-                    required
-                  />
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 7 }}>Nama</label>
+                  <input type="text" placeholder="Nama lengkapmu..." required value={form.reviewerName} onChange={e => setForm(f => ({ ...f, reviewerName: e.target.value }))}
+                    style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E2E8F0', borderRadius: 10, fontSize: 14, outline: 'none', background: 'white', boxSizing: 'border-box' }} />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">Rating</label>
-                  <div className="flex items-center gap-1 mt-1">
-                    {Array(5).fill(0).map((_, i) => (
-                      <button
-                        key={i} type="button"
-                        onMouseEnter={() => setHoverRating(i + 1)}
-                        onMouseLeave={() => setHoverRating(0)}
-                        onClick={() => setReviewForm(f => ({ ...f, rating: i + 1 }))}
-                      >
-                        <Star className={`w-6 h-6 transition-colors ${
-                          i < (hoverRating || reviewForm.rating)
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'fill-gray-100 text-gray-300'
-                        }`} />
-                      </button>
-                    ))}
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 8 }}>Rating</label>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {Array(5).fill(0).map((_, i) => {
+                      const n = i + 1, active = (hoverStar || form.rating) >= n;
+                      return (
+                        <button key={i} type="button"
+                          onClick={() => setForm(f => ({ ...f, rating: n }))}
+                          onMouseEnter={() => setHoverStar(n)}
+                          onMouseLeave={() => setHoverStar(0)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 32, color: active ? '#F59E0B' : '#D1D5DB', padding: 0, lineHeight: 1 }}>★</button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
-              <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Komentar</label>
-                <textarea
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
-                  rows={3}
-                  placeholder="Ceritakan pengalamanmu berbelanja di SEAPEDIA..."
-                  value={reviewForm.comment}
-                  onChange={e => setReviewForm(f => ({ ...f, comment: e.target.value }))}
-                  required
-                />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 7 }}>Komentar</label>
+                  <textarea placeholder="Ceritakan pengalamanmu berbelanja di SEAPEDIA..." required value={form.comment} onChange={e => setForm(f => ({ ...f, comment: e.target.value }))}
+                    style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E2E8F0', borderRadius: 10, fontSize: 14, resize: 'none', height: 112, outline: 'none', background: 'white', boxSizing: 'border-box' }} />
+                </div>
+                <button type="submit" disabled={submitting}
+                  style={{ padding: '14px 24px', background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,.3)' }}>
+                  {submitting ? 'Mengirim...' : '✨ Kirim Ulasan'}
+                </button>
+                <div style={{ fontSize: 11, color: '#94A3B8', textAlign: 'center' }}>Ulasan ini soal pengalaman menggunakan SEAPEDIA — bisa dikirim tanpa checkout atau login.</div>
               </div>
-              <Button type="submit" className="w-full font-semibold" disabled={reviewLoading}>
-                {reviewLoading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                    Mengirim...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Star className="w-4 h-4 fill-white" /> Kirim Ulasan
-                  </span>
-                )}
-              </Button>
             </form>
-            <p className="text-xs text-gray-400 text-center mt-3">
-              Ulasan ini soal pengalaman menggunakan SEAPEDIA — bisa dikirim tanpa checkout atau login.
-            </p>
           </div>
         </div>
       </section>
 
       {/* ── SELLER CTA ── */}
-      <section className="bg-gradient-to-br from-blue-800 via-blue-700 to-blue-600 py-16 px-4 text-white">
-        <div className="container mx-auto grid md:grid-cols-2 gap-10 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-white/15 rounded-full px-3 py-1 text-xs font-semibold mb-4">
-              <Store className="w-3 h-3" /> UNTUK PENJUAL
+      <section id="seller" style={{ background: 'linear-gradient(135deg,#1E3A8A 0%,#1D4ED8 50%,#2563EB 100%)', padding: '80px 32px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: -80, right: -80, width: 400, height: 400, borderRadius: '50%', background: 'rgba(255,255,255,.04)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 48, position: 'relative' }}>
+          <div style={{ maxWidth: 520 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#93C5FD', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Store style={{ width: 14, height: 14 }} /> UNTUK PENJUAL
             </div>
-            <h2 className="text-3xl font-bold mb-3">Mulai Berjualan<br />di SEAPEDIA, Gratis!</h2>
-            <p className="text-blue-100 mb-6 max-w-sm text-sm leading-relaxed">
-              Bergabung dengan 2.000+ penjual sukses. Nikmati buka toko gratis, laporan real-time, dan jangkau lebih dari 50.000 pembeli aktif.
-            </p>
-            <div className="flex gap-3 flex-wrap">
-              <Link href="/register">
-                <Button className="bg-white text-primary hover:bg-blue-50 font-bold shadow-lg">
-                  <Store className="w-4 h-4 mr-1.5" /> Daftar sebagai Penjual
-                </Button>
+            <h2 style={{ fontSize: 38, fontWeight: 900, color: 'white', margin: '0 0 16px', lineHeight: 1.15 }}>Mulai Berjualan<br />di SEAPEDIA, Gratis!</h2>
+            <p style={{ fontSize: 16, color: 'rgba(255,255,255,.8)', margin: '0 0 32px', lineHeight: 1.75 }}>Bergabung dengan 2.000+ penjual sukses. Nikmati buka toko gratis, laporan real-time, dan jangkau lebih dari 50.000 pembeli aktif.</p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <Link href="/register" style={{ padding: '15px 30px', background: 'white', color: '#1D4ED8', fontSize: 15, fontWeight: 800, borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 16px rgba(0,0,0,.15)' }}>
+                <Store style={{ width: 18, height: 18 }} /> Daftar sebagai Penjual
               </Link>
-              <Link href="/products">
-                <Button variant="outline" className="border-white/40 text-white bg-white/10 hover:bg-white/20">
-                  Pelajari Lebih <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
+              <Link href="/products" style={{ padding: '15px 24px', background: 'rgba(255,255,255,.1)', color: 'white', fontSize: 15, fontWeight: 600, borderRadius: 12, border: '2px solid rgba(255,255,255,.3)', display: 'inline-flex', alignItems: 'center' }}>
+                Pelajari Lebih →
               </Link>
             </div>
           </div>
-          {/* stats grid */}
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { value: '2.000+', label: 'Seller Aktif' },
-              { value: 'Rp 5M+', label: 'Total Transaksi' },
-              { value: '0%',     label: 'Biaya Daftar' },
-              { value: '24/7',   label: 'Support' },
-            ].map(({ value, label }) => (
-              <div key={label} className="bg-white/10 border border-white/20 rounded-2xl p-4 text-center backdrop-blur-sm">
-                <p className="text-2xl font-bold text-yellow-300">{value}</p>
-                <p className="text-sm text-blue-100 mt-0.5">{label}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, flexShrink: 0 }}>
+            {[['2.000+','Seller Aktif'],['Rp 5M+','Total Transaksi'],['0%','Biaya Daftar'],['24/7','Support']].map(([v,l]) => (
+              <div key={l} style={{ background: 'rgba(255,255,255,.1)', border: '1.5px solid rgba(255,255,255,.18)', borderRadius: 18, padding: 24, textAlign: 'center' }}>
+                <div style={{ fontSize: 34, fontWeight: 900, color: '#FCD34D', lineHeight: 1 }}>{v}</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,.75)', marginTop: 4 }}>{l}</div>
               </div>
             ))}
           </div>
@@ -524,45 +499,52 @@ export default function HomePage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="bg-gray-900 text-gray-400 py-12 px-4">
-        <div className="container mx-auto grid md:grid-cols-4 gap-8 mb-8">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
-                <ShoppingBag className="w-4 h-4 text-white" />
+      <footer style={{ background: '#0F172A', padding: '72px 32px 32px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 48, marginBottom: 52 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                <div style={{ width: 40, height: 40, background: 'linear-gradient(135deg,#1E40AF,#3B82F6)', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ShoppingBag style={{ width: 20, height: 20, color: 'white' }} />
+                </div>
+                <span style={{ fontSize: 22, fontWeight: 900, color: 'white', letterSpacing: -.5 }}>SEAPEDIA</span>
               </div>
-              <span className="text-white font-bold">SEAPEDIA</span>
+              <p style={{ fontSize: 14, color: '#94A3B8', lineHeight: 1.8, margin: '0 0 22px', maxWidth: 280 }}>Marketplace terpercaya untuk semua. Ribuan produk dari seller pilihan, pengiriman cepat ke seluruh Indonesia.</p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[Globe, Share2, AtSign, MessageCircle].map((Icon, i) => (
+                  <div key={i} style={{ width: 38, height: 38, background: '#1E293B', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                    <Icon style={{ width: 17, height: 17, color: '#64748B' }} />
+                  </div>
+                ))}
+              </div>
             </div>
-            <p className="text-sm leading-relaxed">Marketplace terpercaya untuk semua. Ribuan produk dari seller pilihan, pengiriman cepat ke seluruh Indonesia.</p>
+            {[
+              { title: 'Navigasi', links: [['Beranda','/'],['Produk','/products'],['Ulasan','/reviews'],['Flash Sale','/products'],['Tentang Kami','/']] },
+              { title: 'Akun', links: [['Masuk','/login'],['Daftar Akun','/register'],['Dashboard Buyer','/dashboard/buyer'],['Dashboard Seller','/dashboard/seller'],['Dashboard Driver','/dashboard/driver']] },
+              { title: 'Bantuan', links: [['Pusat Bantuan','/'],['Kebijakan Privasi','/'],['Syarat & Ketentuan','/'],['Hubungi Kami','/'],['Blog SEAPEDIA','/']] },
+            ].map(({ title, links }) => (
+              <div key={title}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: 'white', marginBottom: 18, textTransform: 'uppercase', letterSpacing: .5 }}>{title}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {links.map(([label, href]) => (
+                    <Link key={label} href={href} style={{ fontSize: 14, color: '#94A3B8', fontWeight: 500 }}>{label}</Link>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
-          <div>
-            <p className="text-white font-semibold mb-3 text-sm uppercase tracking-wide">Navigasi</p>
-            <div className="space-y-2 text-sm">
-              <Link href="/" className="block hover:text-white transition-colors">Beranda</Link>
-              <Link href="/products" className="block hover:text-white transition-colors">Produk</Link>
-              <Link href="/reviews" className="block hover:text-white transition-colors">Ulasan</Link>
+          <div style={{ borderTop: '1px solid #1E293B', paddingTop: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+            <div style={{ fontSize: 13, color: '#475569' }}>© 2026 SEAPEDIA — Marketplace Terpercaya untuk Semua 🇮🇩</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 13, color: '#475569' }}>Made with ❤️ in Indonesia</span>
+              <div style={{ background: '#1E293B', borderRadius: 6, padding: '4px 10px', fontSize: 11, color: '#64748B', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <ShieldCheck style={{ width: 11, height: 11 }} /> SSL Secured
+              </div>
+              <div style={{ background: '#1E293B', borderRadius: 6, padding: '4px 10px', fontSize: 11, color: '#64748B', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Lock style={{ width: 11, height: 11 }} /> PCI DSS
+              </div>
             </div>
           </div>
-          <div>
-            <p className="text-white font-semibold mb-3 text-sm uppercase tracking-wide">Akun</p>
-            <div className="space-y-2 text-sm">
-              <Link href="/login" className="block hover:text-white transition-colors">Masuk</Link>
-              <Link href="/register" className="block hover:text-white transition-colors">Daftar Akun</Link>
-              <Link href="/dashboard/buyer" className="block hover:text-white transition-colors">Dashboard Buyer</Link>
-              <Link href="/dashboard/seller" className="block hover:text-white transition-colors">Dashboard Seller</Link>
-            </div>
-          </div>
-          <div>
-            <p className="text-white font-semibold mb-3 text-sm uppercase tracking-wide">Bantuan</p>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2"><ShieldCheck className="w-3.5 h-3.5 text-green-400" /> Transaksi Terenkripsi</div>
-              <div className="flex items-center gap-2"><ShieldCheck className="w-3.5 h-3.5 text-green-400" /> Data Terlindungi</div>
-              <div className="flex items-center gap-2"><ShieldCheck className="w-3.5 h-3.5 text-green-400" /> Penjual Terverifikasi</div>
-            </div>
-          </div>
-        </div>
-        <div className="border-t border-gray-800 pt-6 text-center text-xs">
-          © 2026 SEAPEDIA — COMPFEST 18 Fasilkom UI.
         </div>
       </footer>
     </div>

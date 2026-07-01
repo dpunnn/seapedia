@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import AuthInit from "@/components/AuthInit";
 import { Toaster } from "@/components/ui/sonner";
 
-const inter = Inter({ subsets: ["latin"] });
+const font = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   title: "SEAPEDIA - Marketplace Terpercaya",
@@ -15,10 +19,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
-      <body className={`${inter.className} min-h-screen`}>
+      <body className={`${font.className} min-h-screen`}>
         <AuthInit>
           <Navbar />
-          <main className="min-h-[calc(100vh-4rem)] bg-gray-50">{children}</main>
+          <main style={{ paddingTop: 64 }}>{children}</main>
           <Toaster richColors position="top-right" />
         </AuthInit>
       </body>

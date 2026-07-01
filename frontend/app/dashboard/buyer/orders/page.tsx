@@ -2,11 +2,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatRupiah } from '@/lib/auth';
 import api from '@/lib/api';
+import { ArrowRight, Package } from 'lucide-react';
 
 const NAV = [
   { href: '/dashboard/buyer', label: 'Dashboard' },
@@ -17,12 +16,12 @@ const NAV = [
   { href: '/dashboard/buyer/report', label: 'Laporan Belanja' },
 ];
 
-const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  SEDANG_DIKEMAS: { label: 'Dikemas', color: 'bg-yellow-100 text-yellow-700' },
-  MENUNGGU_PENGIRIM: { label: 'Menunggu Driver', color: 'bg-blue-100 text-blue-700' },
-  SEDANG_DIKIRIM: { label: 'Dikirim', color: 'bg-orange-100 text-orange-700' },
-  PESANAN_SELESAI: { label: 'Selesai', color: 'bg-green-100 text-green-700' },
-  DIKEMBALIKAN: { label: 'Dikembalikan', color: 'bg-red-100 text-red-700' },
+const STATUS_MAP: Record<string, { label: string; bg: string; color: string }> = {
+  SEDANG_DIKEMAS:    { label: 'Dikemas',         bg: '#FEF9C3', color: '#A16207' },
+  MENUNGGU_PENGIRIM: { label: 'Menunggu Driver', bg: '#DBEAFE', color: '#1D4ED8' },
+  SEDANG_DIKIRIM:    { label: 'Dikirim',         bg: '#EDE9FE', color: '#6D28D9' },
+  PESANAN_SELESAI:   { label: 'Selesai',         bg: '#DCFCE7', color: '#15803D' },
+  DIKEMBALIKAN:      { label: 'Dikembalikan',    bg: '#FEE2E2', color: '#DC2626' },
 };
 
 export default function BuyerOrdersPage() {
@@ -33,19 +32,32 @@ export default function BuyerOrdersPage() {
   useEffect(() => {
     setLoading(true);
     const params = status !== 'all' ? `?status=${status}` : '';
-    api.get(`/buyer/orders${params}`).then(r => setOrders(r.data.data.orders || [])).finally(() => setLoading(false));
+    api.get(`/buyer/orders${params}`)
+      .then(r => setOrders(r.data.data.orders || []))
+      .finally(() => setLoading(false));
   }, [status]);
 
   return (
     <DashboardLayout role="BUYER" navItems={NAV}>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Pesanan Saya</h1>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0F172A', margin: 0 }}>Pesanan Saya</h1>
+          <p style={{ color: '#64748B', fontSize: 14, marginTop: 4 }}>Pantau status pesanan Anda</p>
+        </div>
         <Select value={status} onValueChange={v => setStatus(v ?? 'all')}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger
+            style={{
+              width: 180,
+              border: '1.5px solid #E2E8F0',
+              borderRadius: 12,
+              background: '#fff',
+            }}
+          >
             <SelectValue placeholder="Filter status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Semua</SelectItem>
+            <SelectItem value="all">Semua Status</SelectItem>
             {Object.entries(STATUS_MAP).map(([v, s]) => (
               <SelectItem key={v} value={v}>{s.label}</SelectItem>
             ))}
@@ -54,27 +66,90 @@ export default function BuyerOrdersPage() {
       </div>
 
       {loading ? (
-        <p className="text-gray-500">Memuat...</p>
+        <p style={{ color: '#94A3B8' }}>Memuat pesanan...</p>
       ) : orders.length === 0 ? (
-        <p className="text-gray-500 text-center py-12">Tidak ada pesanan</p>
+        <div style={{ textAlign: 'center', padding: '48px 0' }}>
+          <Package className="w-12 h-12 mx-auto mb-4" style={{ color: '#CBD5E1' }} />
+          <p style={{ color: '#64748B' }}>Tidak ada pesanan</p>
+        </div>
       ) : (
-        <div className="space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {orders.map(o => {
             const info = STATUS_MAP[o.status];
             return (
-              <Link key={o.id} href={`/dashboard/buyer/orders/${o.id}`}>
-                <Card className="hover:shadow-sm transition-shadow cursor-pointer">
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">#{o.id.slice(-8).toUpperCase()}</p>
-                      <p className="text-xs text-gray-500">{o.store?.name} · {new Date(o.createdAt).toLocaleDateString('id-ID')}</p>
-                      <p className="text-blue-600 font-bold text-sm mt-1">{formatRupiah(o.totalAmount)}</p>
+              <Link
+                key={o.id}
+                href={`/dashboard/buyer/orders/${o.id}`}
+                style={{ textDecoration: 'none' }}
+              >
+                <div
+                  style={{
+                    background: '#fff',
+                    borderRadius: 16,
+                    border: '1.5px solid #F1F5F9',
+                    padding: '16px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    transition: 'box-shadow 0.15s',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.06)')}
+                  onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    {/* Order icon */}
+                    <div
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 12,
+                        background: '#EFF6FF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Package className="w-5 h-5" style={{ color: '#1D4ED8' }} />
                     </div>
-                    {info && (
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${info.color}`}>{info.label}</span>
+
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 2 }}>
+                        #{o.id.slice(-8).toUpperCase()}
+                      </p>
+                      <p style={{ fontSize: 12, color: '#94A3B8' }}>
+                        {o.store?.name ?? '-'} &middot;{' '}
+                        {new Date(o.createdAt).toLocaleDateString('id-ID', {
+                          day: 'numeric', month: 'short', year: 'numeric',
+                        })}
+                      </p>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#1D4ED8', marginTop: 4 }}>
+                        {formatRupiah(o.totalAmount)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {info ? (
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          padding: '4px 12px',
+                          borderRadius: 20,
+                          background: info.bg,
+                          color: info.color,
+                        }}
+                      >
+                        {info.label}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 12, color: '#94A3B8' }}>{o.status}</span>
                     )}
-                  </CardContent>
-                </Card>
+                    <ArrowRight className="w-4 h-4" style={{ color: '#CBD5E1' }} />
+                  </div>
+                </div>
               </Link>
             );
           })}

@@ -7,7 +7,7 @@ import api from '@/lib/api';
 import {
   LayoutDashboard, Wallet, MapPin, ShoppingCart, Package, BarChart2,
   Store, Box, ClipboardList, TrendingUp, Search, Truck, History,
-  AlertTriangle, Users, Ticket, Tag, Clock, LogOut, ChevronRight,
+  AlertTriangle, Users, Ticket, Tag, Clock, LogOut, ChevronRight, ShoppingBag,
 } from 'lucide-react';
 
 interface NavItem { href: string; label: string; }
@@ -16,6 +16,7 @@ interface Props {
   role: string;
   navItems: NavItem[];
   children: React.ReactNode;
+  navBadges?: Record<string, number>;
 }
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -46,14 +47,14 @@ const ICON_MAP: Record<string, React.ElementType> = {
   '/dashboard/admin/time': Clock,
 };
 
-const ROLE_CONFIG: Record<string, { label: string; badge: string; accent: string; activeBg: string; activeText: string; activeBorder: string }> = {
-  BUYER:  { label: 'Pembeli',   badge: 'bg-blue-100 text-blue-700',   accent: 'text-blue-600',   activeBg: 'bg-blue-50',   activeText: 'text-blue-700',   activeBorder: 'border-blue-500' },
-  SELLER: { label: 'Penjual',   badge: 'bg-green-100 text-green-700', accent: 'text-green-600',  activeBg: 'bg-green-50',  activeText: 'text-green-700',  activeBorder: 'border-green-500' },
-  DRIVER: { label: 'Pengemudi', badge: 'bg-orange-100 text-orange-700', accent: 'text-orange-600', activeBg: 'bg-orange-50', activeText: 'text-orange-700', activeBorder: 'border-orange-500' },
-  ADMIN:  { label: 'Admin',     badge: 'bg-red-100 text-red-700',     accent: 'text-red-600',    activeBg: 'bg-red-50',    activeText: 'text-red-700',    activeBorder: 'border-red-500' },
+const ROLE_AVATAR_CONFIG: Record<string, { gradient: string; icon: React.ElementType; label: string }> = {
+  BUYER:  { gradient: 'linear-gradient(135deg,#3B82F6,#1D4ED8)',  icon: ShoppingCart, label: 'Pembeli Aktif' },
+  SELLER: { gradient: 'linear-gradient(135deg,#059669,#047857)',  icon: Store,        label: 'Penjual Aktif' },
+  DRIVER: { gradient: 'linear-gradient(135deg,#059669,#34D399)',  icon: Truck,        label: 'Driver Aktif' },
+  ADMIN:  { gradient: 'linear-gradient(135deg,#DC2626,#EF4444)',  icon: Users,        label: 'Admin' },
 };
 
-export default function DashboardLayout({ role, navItems, children }: Props) {
+export default function DashboardLayout({ role, navItems, children, navBadges }: Props) {
   const { user, isLoading, logout } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
@@ -71,86 +72,156 @@ export default function DashboardLayout({ role, navItems, children }: Props) {
   };
 
   if (isLoading || !user) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#F0F5FF' }}>
       <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
         <p className="text-sm text-gray-500">Memuat...</p>
       </div>
     </div>
   );
 
-  const cfg = ROLE_CONFIG[role] ?? ROLE_CONFIG.BUYER;
-  const initials = user.email.charAt(0).toUpperCase();
+  const username = user.email.split('@')[0];
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen" style={{ background: '#F0F5FF' }}>
       {/* Sidebar */}
-      <aside className="w-60 bg-white border-r border-gray-100 flex flex-col flex-shrink-0 shadow-sm">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-100">
-          <Link href="/" className="flex items-center gap-2 mb-4">
-            <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
-              <ShoppingCart className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-primary text-base tracking-tight">SEAPEDIA</span>
+      <aside
+        className="flex-shrink-0 flex flex-col sticky top-0 h-screen overflow-y-auto"
+        style={{
+          width: 240,
+          background: 'linear-gradient(180deg,#0F172A 0%,#1E293B 100%)',
+        }}
+      >
+        {/* Logo */}
+        <div className="p-5 pb-4">
+          <Link href="/" className="flex items-center gap-2 mb-5">
+            <ShoppingBag className="w-5 h-5 text-white" />
+            <span className="font-bold text-white text-base tracking-widest">SEAPEDIA</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <span className={`text-sm font-bold ${cfg.accent}`}>{initials}</span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-gray-800 truncate">{user.email.split('@')[0]}</p>
-              <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium mt-0.5 ${cfg.badge}`}>
-                {cfg.label}
-              </span>
-            </div>
-          </div>
+
+          {/* User card */}
+          {(() => {
+            const avatarCfg = ROLE_AVATAR_CONFIG[role] ?? ROLE_AVATAR_CONFIG.BUYER;
+            const AvatarIcon = avatarCfg.icon;
+            return (
+              <div
+                className="flex items-center gap-3 p-4 rounded-2xl"
+                style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 16 }}
+              >
+                {/* Avatar */}
+                <div
+                  className="flex-shrink-0 flex items-center justify-center"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: avatarCfg.gradient,
+                  }}
+                >
+                  <AvatarIcon className="w-5 h-5 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white truncate" style={{ fontSize: 13, fontWeight: 700 }}>{username}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span
+                      className="inline-block rounded-full animate-pulse"
+                      style={{ width: 6, height: 6, background: '#22C55E', flexShrink: 0 }}
+                    />
+                    <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>{avatarCfg.label}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 px-3" style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {navItems.map(item => {
             const Icon = ICON_MAP[item.href] ?? ChevronRight;
             const isActive = pathname === item.href;
+            const badge = navBadges?.[item.href];
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border-l-[3px] ${
-                  isActive
-                    ? `${cfg.activeBg} ${cfg.activeText} ${cfg.activeBorder}`
-                    : 'text-gray-600 border-transparent hover:bg-gray-50 hover:text-gray-900'
-                }`}
+                className="flex items-center gap-3 transition-all"
+                style={{
+                  padding: '11px 14px',
+                  borderRadius: 12,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  background: isActive ? 'rgba(255,255,255,0.14)' : 'transparent',
+                  color: isActive ? '#fff' : 'rgba(255,255,255,0.5)',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)';
+                    (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)';
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.background = 'transparent';
+                    (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.5)';
+                  }
+                }}
               >
-                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? cfg.activeText : 'text-gray-400'}`} />
-                {item.label}
+                <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  {item.label}
+                </span>
+                {badge != null && badge > 0 && (
+                  <span
+                    style={{
+                      background: '#059669',
+                      color: '#fff',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      padding: '2px 7px',
+                      borderRadius: 20,
+                      minWidth: 18,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {badge}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
 
         {/* Footer */}
-        <div className="p-3 border-t border-gray-100 space-y-1">
-          <Link
-            href="/select-role"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-          >
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-            Ganti Peran
-          </Link>
+        <div className="p-3 mt-auto">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors"
+            className="w-full flex items-center gap-3 transition-colors"
+            style={{
+              padding: '11px 14px',
+              borderRadius: 12,
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'rgba(255,255,255,0.4)',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              textAlign: 'left',
+            }}
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4 h-4 flex-shrink-0" />
             Keluar
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto bg-gray-50/60">
-        <div className="p-6 min-h-full">{children}</div>
+      <div className="flex-1 overflow-auto" style={{ padding: 32 }}>
+        {children}
       </div>
     </div>
   );

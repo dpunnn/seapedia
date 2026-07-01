@@ -4,7 +4,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci
+RUN --mount=type=cache,target=/root/.npm npm install --legacy-peer-deps
 
 COPY . .
 
