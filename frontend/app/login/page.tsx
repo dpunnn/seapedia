@@ -175,7 +175,7 @@ function LoginPageInner() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {DEMO_ACCOUNTS.map(acc => (
                 <button
-                  key={acc.username}
+                  key={acc.email}
                   onClick={() => fillDemo(acc.email, acc.password)}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
