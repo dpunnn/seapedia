@@ -1,17 +1,17 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { User, KeyRound, Eye, EyeOff, ShoppingCart, Store, Truck } from 'lucide-react';
+import { Mail, User, KeyRound, Eye, EyeOff, ShoppingCart, Store, Truck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/auth.store';
 import { decodeToken } from '@/lib/auth';
 import api from '@/lib/api';
 
 const DEMO_ACCOUNTS = [
-  { label: 'Admin',    username: 'admin',  password: 'demo' },
-  { label: 'Pembeli',  username: 'buyer1', password: 'demo' },
-  { label: 'Penjual',  username: 'seller1',password: 'demo' },
-  { label: 'Driver',   username: 'driver1',password: 'demo' },
+  { label: 'Admin',   email: 'admin@seapedia.com',   password: 'admin123' },
+  { label: 'Pembeli', email: 'buyer@seapedia.com',   password: 'buyer123' },
+  { label: 'Penjual', email: 'seller@seapedia.com',  password: 'seller123' },
+  { label: 'Driver',  email: 'driver@seapedia.com',  password: 'driver123' },
 ];
 
 const ROLES = [
@@ -27,8 +27,8 @@ function LoginPageInner() {
 
   const initialMode = searchParams.get('mode') === 'register' ? 'register' : 'login';
   const [activeTab, setActiveTab]   = useState<'login' | 'register'>(initialMode);
-  const [loginForm, setLoginForm]   = useState({ username: '', password: '' });
-  const [regForm, setRegForm]       = useState({ fullname: '', username: '', password: '' });
+  const [loginForm, setLoginForm]   = useState({ email: '', password: '' });
+  const [regForm, setRegForm]       = useState({ username: '', email: '', password: '' });
   const [selectedRoles, setRoles]   = useState<string[]>(['BUYER']);
   const [loading, setLoading]       = useState(false);
   const [showPw, setShowPw]         = useState(false);
@@ -47,8 +47,8 @@ function LoginPageInner() {
     router.replace(url);
   };
 
-  const fillDemo = (username: string, password: string) => {
-    setLoginForm({ username, password });
+  const fillDemo = (email: string, password: string) => {
+    setLoginForm({ email, password });
     if (activeTab !== 'login') switchTab('login');
   };
 
@@ -74,7 +74,7 @@ function LoginPageInner() {
         router.push('/select-role');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Username atau password salah');
+      setError(err.response?.data?.message || 'Email atau password salah');
     } finally {
       setLoading(false);
     }
@@ -92,7 +92,7 @@ function LoginPageInner() {
     try {
       await api.post('/auth/register', {
         username: regForm.username,
-        fullname: regForm.fullname,
+        email: regForm.email,
         password: regForm.password,
         roles: selectedRoles,
       });
@@ -176,7 +176,7 @@ function LoginPageInner() {
               {DEMO_ACCOUNTS.map(acc => (
                 <button
                   key={acc.username}
-                  onClick={() => fillDemo(acc.username, acc.password)}
+                  onClick={() => fillDemo(acc.email, acc.password)}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px',
@@ -194,7 +194,7 @@ function LoginPageInner() {
                 >
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#1E293B' }}>{acc.label}</span>
                   <span style={{ fontSize: '12px', fontFamily: 'monospace', color: '#94A3B8' }}>
-                    {acc.username} / {acc.password}
+                    {acc.email.split('@')[0]} / {acc.password}
                   </span>
                 </button>
               ))}
@@ -237,7 +237,7 @@ function LoginPageInner() {
                 Masuk ke akun
               </h2>
               <p style={{ fontSize: '14px', color: '#94A3B8', marginBottom: '24px' }}>
-                Gunakan username dan password kamu
+                Gunakan email dan password kamu
               </p>
 
               {error && (
@@ -249,17 +249,17 @@ function LoginPageInner() {
                 </div>
               )}
 
-              {/* Username */}
+              {/* Email */}
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                  Username
+                  Email
                 </label>
                 <div style={{ position: 'relative' }}>
-                  <User style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#94A3B8' }} />
+                  <Mail style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#94A3B8' }} />
                   <input
-                    type="text" placeholder="username kamu"
-                    value={loginForm.username}
-                    onChange={e => setLoginForm(f => ({ ...f, username: e.target.value }))}
+                    type="email" placeholder="email@kamu.com"
+                    value={loginForm.email}
+                    onChange={e => setLoginForm(f => ({ ...f, email: e.target.value }))}
                     required
                     style={{
                       width: '100%', padding: '13px 14px 13px 42px', boxSizing: 'border-box',
@@ -327,7 +327,7 @@ function LoginPageInner() {
                 background: '#EFF6FF', borderRadius: '10px', padding: '10px 14px',
                 fontSize: '11px', color: '#1D4ED8', lineHeight: 1.5,
               }}>
-                💡 Password default semua akun demo: <strong>demo</strong>
+                Klik akun demo di sebelah kiri untuk auto-isi form
               </div>
             </form>
           )}
@@ -351,29 +351,6 @@ function LoginPageInner() {
                 </div>
               )}
 
-              {/* Nama Lengkap */}
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                  Nama Lengkap
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <User style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#94A3B8' }} />
-                  <input
-                    type="text" placeholder="Nama lengkap kamu"
-                    value={regForm.fullname}
-                    onChange={e => setRegForm(f => ({ ...f, fullname: e.target.value }))}
-                    required
-                    style={{
-                      width: '100%', padding: '13px 14px 13px 42px', boxSizing: 'border-box',
-                      border: '1.5px solid #E2E8F0', borderRadius: '12px', background: '#FAFAFA',
-                      fontSize: '14px', color: '#1E293B', outline: 'none',
-                    }}
-                    onFocus={e => (e.target.style.borderColor = '#2563EB')}
-                    onBlur={e => (e.target.style.borderColor = '#E2E8F0')}
-                  />
-                </div>
-              </div>
-
               {/* Username */}
               <div style={{ marginBottom: '14px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
@@ -386,6 +363,29 @@ function LoginPageInner() {
                     value={regForm.username}
                     onChange={e => setRegForm(f => ({ ...f, username: e.target.value }))}
                     required minLength={3}
+                    style={{
+                      width: '100%', padding: '13px 14px 13px 42px', boxSizing: 'border-box',
+                      border: '1.5px solid #E2E8F0', borderRadius: '12px', background: '#FAFAFA',
+                      fontSize: '14px', color: '#1E293B', outline: 'none',
+                    }}
+                    onFocus={e => (e.target.style.borderColor = '#2563EB')}
+                    onBlur={e => (e.target.style.borderColor = '#E2E8F0')}
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  Email
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Mail style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#94A3B8' }} />
+                  <input
+                    type="email" placeholder="email@kamu.com"
+                    value={regForm.email}
+                    onChange={e => setRegForm(f => ({ ...f, email: e.target.value }))}
+                    required
                     style={{
                       width: '100%', padding: '13px 14px 13px 42px', boxSizing: 'border-box',
                       border: '1.5px solid #E2E8F0', borderRadius: '12px', background: '#FAFAFA',
