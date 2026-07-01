@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: seapedia-db
+    environment:
+      POSTGRES_USER: seapedia
+      POSTGRES_PASSWORD: seapedia123
+      POSTGRES_DB: seapedia
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U seapedia"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: seapedia-backend
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://seapedia:seapedia123@db:5432/seapedia
+      JWT_SECRET: seapedia_jwt_secret_dev
+      PORT: 5000
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: seapedia-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5000/api
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
