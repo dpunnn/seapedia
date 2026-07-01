@@ -65,16 +65,17 @@ DATABASE_URL untuk Docker: `postgresql://seapedia:seapedia123@localhost:5433/sea
 
 ## Demo Accounts
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@seapedia.com | admin123 |
-| Seller | seller@seapedia.com | seller123 |
-| Buyer | buyer@seapedia.com | buyer123 |
-| Driver | driver@seapedia.com | driver123 |
-| Multi-role (Seller+Buyer) | multi@seapedia.com | multi123 |
+| Role | Email | Password | Catatan |
+|------|-------|----------|---------|
+| Admin | admin@seapedia.com | admin123 | |
+| Buyer | buyer@seapedia.com | buyer123 | Wallet: Rp 500.000 |
+| Seller | seller@seapedia.com | seller123 | Toko: Toko Budi |
+| Driver | driver@seapedia.com | driver123 | |
+| Multi-role (Seller+Buyer) | multi@seapedia.com | multi123 | |
 
-**Voucher aktif**: `SEAPEDIA10` (10% diskon, min Rp100.000)  
-**Promo aktif**: `SUMMER50K` (fixed Rp50.000, min Rp200.000)
+**Voucher aktif**: `DISKON10` (10%, min Rp50.000, maks Rp25.000)  
+**Voucher expired**: `LAMA20` (expired — untuk testing)  
+**Promo aktif**: `PROMO50K` (fixed Rp50.000, min Rp200.000)
 
 ## API Documentation
 

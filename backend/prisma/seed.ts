@@ -11,11 +11,11 @@ const SALT_ROUNDS = 12;
 type UserSeed = { username: string; email: string; password: string; roles: Role[] };
 
 const users: UserSeed[] = [
-  { username: 'admin_sea', email: 'admin@seapedia.com', password: 'Admin@123', roles: ['ADMIN'] },
-  { username: 'budi_buyer', email: 'budi@seapedia.com', password: 'Buyer@123', roles: ['BUYER'] },
-  { username: 'siti_seller', email: 'siti@seapedia.com', password: 'Seller@123', roles: ['SELLER'] },
-  { username: 'doni_driver', email: 'doni@seapedia.com', password: 'Driver@123', roles: ['DRIVER'] },
-  { username: 'multi_user', email: 'multi@seapedia.com', password: 'Multi@123', roles: ['BUYER', 'SELLER', 'DRIVER'] },
+  { username: 'admin_sea', email: 'admin@seapedia.com', password: 'admin123', roles: ['ADMIN'] },
+  { username: 'buyer_sea', email: 'buyer@seapedia.com', password: 'buyer123', roles: ['BUYER'] },
+  { username: 'seller_sea', email: 'seller@seapedia.com', password: 'seller123', roles: ['SELLER'] },
+  { username: 'driver_sea', email: 'driver@seapedia.com', password: 'driver123', roles: ['DRIVER'] },
+  { username: 'multi_user', email: 'multi@seapedia.com', password: 'multi123', roles: ['BUYER', 'SELLER'] },
 ];
 
 async function main() {
@@ -84,11 +84,11 @@ async function main() {
 
   const multiUser = createdUsers['multi_user'];
 
-  // Create store for siti_seller
+  // Create store for seller_sea
   const store = await prisma.store.create({
     data: {
-      userId: createdUsers['siti_seller'].id,
-      name: 'Toko Siti Sejahtera',
+      userId: createdUsers['seller_sea'].id,
+      name: 'Toko Budi',
       description: 'Toko kebutuhan sehari-hari dengan produk berkualitas',
     },
   });
@@ -102,14 +102,14 @@ async function main() {
     },
   });
 
-  // Products for siti_seller's store
+  // Products for seller_sea's store (5 produk)
   await prisma.product.createMany({
     data: [
-      { storeId: store.id, name: 'Beras Premium 5kg', description: 'Beras pulen pilihan', price: 75000, stock: 100, imageUrl: '' },
-      { storeId: store.id, name: 'Minyak Goreng 2L', description: 'Minyak kelapa sawit murni', price: 35000, stock: 50, imageUrl: '' },
-      { storeId: store.id, name: 'Gula Pasir 1kg', description: 'Gula kristal putih', price: 18000, stock: 200, imageUrl: '' },
-      { storeId: store.id, name: 'Telur Ayam 1 Peti', description: '30 butir telur ayam negeri segar', price: 55000, stock: 80, imageUrl: '' },
-      { storeId: store.id, name: 'Sabun Mandi Batang', description: 'Sabun antiseptik', price: 8000, stock: 300, imageUrl: '' },
+      { storeId: store.id, name: 'Beras Premium 5kg', description: 'Beras pulen pilihan petani lokal', price: 75000, stock: 100, imageUrl: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400' },
+      { storeId: store.id, name: 'Minyak Goreng 2L', description: 'Minyak kelapa sawit murni premium', price: 35000, stock: 50, imageUrl: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400' },
+      { storeId: store.id, name: 'Gula Pasir 1kg', description: 'Gula kristal putih grade A', price: 18000, stock: 200, imageUrl: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=400' },
+      { storeId: store.id, name: 'Telur Ayam 1 Peti', description: '30 butir telur ayam negeri segar', price: 55000, stock: 80, imageUrl: 'https://images.unsplash.com/photo-1598965675045-45c5e72c7d05?w=400' },
+      { storeId: store.id, name: 'Sabun Mandi Antiseptik', description: 'Sabun antiseptik proteksi 99.9%', price: 8000, stock: 300, imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
     ],
   });
 
@@ -122,40 +122,42 @@ async function main() {
   });
 
   // Voucher & Promo
-  const futureDate = new Date();
-  futureDate.setMonth(futureDate.getMonth() + 3);
+  const expiry2026 = new Date('2026-12-31T23:59:59Z');
+  const expiredDate = new Date('2026-01-01T00:00:00Z');
 
+  // Voucher aktif: DISKON10 (10%, min 50rb, max 25rb, 100 usage)
   await prisma.voucher.create({
     data: {
-      code: 'SEAPEDIA10',
+      code: 'DISKON10',
       discountType: 'PERCENTAGE',
       discountValue: 10,
       minPurchase: 50000,
       maxDiscount: 25000,
-      expiryDate: futureDate,
+      expiryDate: expiry2026,
       usageLimit: 100,
     },
   });
 
+  // Voucher expired: LAMA20
   await prisma.voucher.create({
     data: {
-      code: 'DISKON50K',
-      discountType: 'FIXED',
-      discountValue: 50000,
-      minPurchase: 200000,
-      expiryDate: futureDate,
+      code: 'LAMA20',
+      discountType: 'PERCENTAGE',
+      discountValue: 20,
+      minPurchase: 50000,
+      expiryDate: expiredDate,
       usageLimit: 50,
     },
   });
 
+  // Promo aktif: PROMO50K (fixed 50rb, min 200rb)
   await prisma.promo.create({
     data: {
-      code: 'PROMO15',
-      discountType: 'PERCENTAGE',
-      discountValue: 15,
-      minPurchase: 100000,
-      maxDiscount: 30000,
-      expiryDate: futureDate,
+      code: 'PROMO50K',
+      discountType: 'FIXED',
+      discountValue: 50000,
+      minPurchase: 200000,
+      expiryDate: expiry2026,
     },
   });
 
@@ -164,23 +166,28 @@ async function main() {
     data: { key: 'virtual_date', value: new Date().toISOString() },
   });
 
-  // App reviews
+  // App reviews (5 buah sesuai spec)
   await prisma.appReview.createMany({
     data: [
-      { reviewerName: 'Budi', comment: 'Aplikasi sangat mudah digunakan!', rating: 5 },
-      { reviewerName: 'Siti', comment: 'Produk lengkap, pengiriman cepat.', rating: 4 },
-      { reviewerName: 'Doni', comment: 'Sebagai driver, aplikasinya responsif.', rating: 5 },
+      { reviewerName: 'Budi Santoso', comment: 'Aplikasi sangat mudah digunakan! Belanja jadi lebih praktis.', rating: 5 },
+      { reviewerName: 'Siti Rahayu', comment: 'Produk lengkap dan harga kompetitif. Pengiriman cepat!', rating: 4 },
+      { reviewerName: 'Doni Kurniawan', comment: 'Sebagai driver, dashboard-nya responsif dan informatif.', rating: 5 },
+      { reviewerName: 'Rina Wati', comment: 'Fitur dompet digital sangat membantu transaksi sehari-hari.', rating: 4 },
+      { reviewerName: 'Ahmad Fauzi', comment: 'Multi-role system keren! Bisa jadi buyer sekaligus seller.', rating: 5 },
     ],
   });
 
   console.log('Seed complete!');
   console.log('');
   console.log('Demo accounts:');
-  console.log('  admin@seapedia.com  / Admin@123  [ADMIN]');
-  console.log('  budi@seapedia.com   / Buyer@123  [BUYER]');
-  console.log('  siti@seapedia.com   / Seller@123 [SELLER]');
-  console.log('  doni@seapedia.com   / Driver@123 [DRIVER]');
-  console.log('  multi@seapedia.com  / Multi@123  [BUYER+SELLER+DRIVER]');
+  console.log('  admin@seapedia.com   / admin123   [ADMIN]');
+  console.log('  buyer@seapedia.com   / buyer123   [BUYER]  wallet: Rp500.000');
+  console.log('  seller@seapedia.com  / seller123  [SELLER] toko: Toko Budi');
+  console.log('  driver@seapedia.com  / driver123  [DRIVER]');
+  console.log('  multi@seapedia.com   / multi123   [BUYER+SELLER]');
+  console.log('');
+  console.log('Vouchers: DISKON10 (aktif), LAMA20 (expired)');
+  console.log('Promos:   PROMO50K (aktif)');
 }
 
 main()
