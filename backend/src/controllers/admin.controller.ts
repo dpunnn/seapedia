@@ -49,7 +49,7 @@ export const getUsers = async (req: AuthRequest, res: Response): Promise<void> =
 };
 
 export const toggleUserBlock = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const adminId = req.user?.userId;
 
   if (id === adminId) {
@@ -57,13 +57,16 @@ export const toggleUserBlock = async (req: AuthRequest, res: Response): Promise<
     return;
   }
 
-  const user = await prisma.user.findUnique({ where: { id }, select: { id: true, isBlocked: true, roles: true } });
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: { id: true, isBlocked: true, roles: { select: { role: true } } },
+  });
   if (!user) {
     errorResponse(res, 'Pengguna tidak ditemukan', 404);
     return;
   }
 
-  const isAdmin = user.roles.some((r: any) => r.role === 'ADMIN');
+  const isAdmin = user.roles.some((r) => r.role === 'ADMIN');
   if (isAdmin) {
     errorResponse(res, 'Tidak bisa memblokir sesama admin', 400);
     return;
