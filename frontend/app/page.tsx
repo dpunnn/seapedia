@@ -89,21 +89,21 @@ export default function HomePage() {
     <div style={{ background: '#F8FAFC' }}>
 
       {/* ── HERO ── */}
-      <section style={{ background: 'linear-gradient(135deg,#1E3A8A 0%,#1D4ED8 45%,#2563EB 75%,#3B82F6 100%)', padding: '120px 32px 88px', minHeight: 620, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
+      <section className="px-4 sm:px-6 lg:px-8 pt-24 pb-12 sm:pt-28 sm:pb-16 lg:pt-[120px] lg:pb-[88px]" style={{ background: 'linear-gradient(135deg,#1E3A8A 0%,#1D4ED8 45%,#2563EB 75%,#3B82F6 100%)', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
         <div style={{ position: 'absolute', top: -80, right: 140, width: 520, height: 520, borderRadius: '50%', background: 'rgba(255,255,255,.04)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -140, left: -80, width: 400, height: 400, borderRadius: '50%', background: 'rgba(255,255,255,.04)', pointerEvents: 'none' }} />
 
-        <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 40 }}>
+        <div className="flex flex-col lg:flex-row" style={{ maxWidth: 1200, margin: '0 auto', width: '100%', alignItems: 'center', justifyContent: 'space-between', gap: 40 }}>
 
           {/* Left */}
-          <div style={{ flex: 1, maxWidth: 580 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.25)', borderRadius: 100, padding: '7px 16px', marginBottom: 28, backdropFilter: 'blur(8px)' }}>
+          <div style={{ flex: 1, maxWidth: 580, width: '100%' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.25)', borderRadius: 100, padding: '7px 16px', marginBottom: 28, backdropFilter: 'blur(8px)', flexWrap: 'wrap' }}>
               <Zap style={{ width: 14, height: 14, color: 'white', fill: 'white' }} />
               <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>Flash Sale Aktif!</span>
               <span style={{ background: '#F59E0B', color: 'white', fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 100, letterSpacing: '.5px', fontVariantNumeric: 'tabular-nums' }}>{countdown}</span>
             </div>
 
-            <h1 style={{ fontSize: 54, fontWeight: 900, color: 'white', margin: '0 0 16px', lineHeight: 1.08 }}>
+            <h1 className="text-4xl sm:text-5xl lg:text-[54px]" style={{ fontWeight: 900, color: 'white', margin: '0 0 16px', lineHeight: 1.08 }}>
               Belanja Lebih<br />
               <span style={{ color: '#FCD34D' }}>Mudah &amp; Hemat</span><br />
               di SEAPEDIA
@@ -131,7 +131,7 @@ export default function HomePage() {
           </div>
 
           {/* Right — CSS mascot */}
-          <div style={{ flexShrink: 0, width: 400, height: 460, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="hidden lg:flex" style={{ flexShrink: 0, width: 400, height: 460, position: 'relative', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ position: 'absolute', width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,.14),transparent 70%)', pointerEvents: 'none' }} />
 
             {/* Mascot */}
@@ -202,14 +202,17 @@ export default function HomePage() {
 
       {/* ── STATS ── */}
       <section style={{ background: 'white', borderBottom: '1px solid #F1F5F9' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)' }}>
+        <div className="grid grid-cols-2 lg:grid-cols-4" style={{ maxWidth: 1200, margin: '0 auto' }}>
           {[
             { icon: Package,     value: '10.000+', label: 'Produk Tersedia', bg: '#EFF6FF' },
             { icon: Store,       value: '2.000+',  label: 'Penjual Aktif',   bg: '#F5F3FF' },
             { icon: Users,       value: '50.000+', label: 'Pembeli Puas',    bg: '#FFFBEB' },
             { icon: ShieldCheck, value: '99.9%',   label: 'Transaksi Aman',  bg: '#F0FDF4' },
-          ].map(({ icon: Icon, value, label, bg }, i) => (
-            <div key={label} style={{ padding: '28px 32px', display: 'flex', alignItems: 'center', gap: 16, borderRight: i < 3 ? '1px solid #F1F5F9' : 'none' }}>
+          ].map(({ icon: Icon, value, label, bg }) => (
+            <div key={label} style={{
+              padding: '20px 16px', display: 'flex', alignItems: 'center', gap: 12,
+              border: '1px solid #F1F5F9',
+            }}>
               <div style={{ width: 52, height: 52, borderRadius: 14, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Icon style={{ width: 26, height: 26, color: '#2563EB' }} />
               </div>
@@ -234,13 +237,13 @@ export default function HomePage() {
       </div>
 
       {/* ── KATEGORI ── */}
-      <section style={{ padding: '48px 32px 32px', background: '#F8FAFC' }}>
+      <section className="px-4 sm:px-6 lg:px-8" style={{ padding: '48px 0 32px', background: '#F8FAFC' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
             <h2 style={{ fontSize: 24, fontWeight: 900, color: '#0F172A', margin: 0 }}>Jelajahi Kategori</h2>
             <Link href="/products" style={{ fontSize: 14, color: '#2563EB', fontWeight: 600 }}>Lihat semua →</Link>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 16 }}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {CATS.map(({ id, label, icon: Icon, color, bg }) => (
               <Link key={id} href={`/products?search=${id}`}
                 style={{ background: bg, borderRadius: 20, padding: '28px 16px', textAlign: 'center', cursor: 'pointer', border: '1.5px solid transparent', transition: 'all .3s', display: 'block' }}>
@@ -255,11 +258,11 @@ export default function HomePage() {
       </section>
 
       {/* ── FLASH SALE ── */}
-      <section style={{ padding: '0 32px 48px', background: '#F8FAFC' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', background: 'linear-gradient(135deg,#EA580C 0%,#DC2626 55%,#9F1239 100%)', borderRadius: 24, padding: '28px 32px', overflow: 'hidden', position: 'relative' }}>
+      <section className="px-4 sm:px-6 lg:px-8" style={{ padding: '0 0 48px', background: '#F8FAFC' }}>
+        <div className="px-4 sm:px-6" style={{ maxWidth: 1200, margin: '0 auto', background: 'linear-gradient(135deg,#EA580C 0%,#DC2626 55%,#9F1239 100%)', borderRadius: 24, padding: '28px 0', overflow: 'hidden', position: 'relative' }}>
           <div style={{ position: 'absolute', top: -50, right: -50, width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,.06)', pointerEvents: 'none' }} />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div className="flex-col sm:flex-row" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, position: 'relative', gap: 16 }}>
+            <div className="flex-wrap" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
               <div>
                 <div style={{ color: 'white', fontSize: 24, fontWeight: 900, lineHeight: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Zap style={{ width: 22, height: 22, fill: 'white' }} /> FLASH SALE
@@ -270,12 +273,12 @@ export default function HomePage() {
                 <span style={{ color: 'white', fontSize: 22, fontWeight: 900, letterSpacing: 2, fontVariantNumeric: 'tabular-nums' }}>{countdown}</span>
               </div>
             </div>
-            <Link href="/products" style={{ color: 'white', background: 'rgba(255,255,255,.18)', border: '1px solid rgba(255,255,255,.3)', borderRadius: 10, padding: '9px 18px', fontSize: 13, fontWeight: 700 }}>
+            <Link href="/products" style={{ color: 'white', background: 'rgba(255,255,255,.18)', border: '1px solid rgba(255,255,255,.3)', borderRadius: 10, padding: '9px 18px', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' }}>
               Lihat Semua →
             </Link>
           </div>
           {!loading && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, position: 'relative' }}>
+            <div className="grid-cols-2 lg:grid-cols-4" style={{ display: 'grid', gap: 12, position: 'relative' }}>
               {products.slice(0, 4).map((p, i) => (
                 <Link key={p.id} href={`/products/${p.id}`} style={{ background: 'rgba(255,255,255,.12)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,.18)', borderRadius: 16, padding: 16, display: 'block' }}>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -302,9 +305,9 @@ export default function HomePage() {
       </section>
 
       {/* ── PRODUCTS ── */}
-      <section id="products" style={{ padding: '0 32px 64px', background: '#F8FAFC' }}>
+      <section id="products" className="px-4 sm:px-6 lg:px-8" style={{ padding: '0 0 64px', background: '#F8FAFC' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, gap: 12, flexWrap: 'wrap' }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 6 }}>✨ PILIHAN TERBAIK</div>
               <h2 style={{ fontSize: 28, fontWeight: 900, color: '#0F172A', margin: 0 }}>Produk Terbaru</h2>
@@ -313,13 +316,13 @@ export default function HomePage() {
           </div>
 
           {loading ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
               {Array(8).fill(0).map((_, i) => (
                 <div key={i} style={{ background: 'white', borderRadius: 20, height: 340, animation: 'shimmer 1.5s infinite', backgroundImage: 'linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%)', backgroundSize: '400px 100%' }} />
               ))}
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
               {products.map((p) => (
                 <div key={p.id} style={{ background: 'white', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,.06)', position: 'relative', transition: 'all .3s' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-6px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 16px 40px rgba(0,0,0,.12)'; }}
@@ -371,8 +374,8 @@ export default function HomePage() {
       </section>
 
       {/* ── TRUST ── */}
-      <section style={{ padding: '0 32px 64px', background: '#F8FAFC' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
+      <section className="px-4 sm:px-6 lg:px-8" style={{ padding: '0 0 64px', background: '#F8FAFC' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" style={{ maxWidth: 1200, margin: '0 auto' }}>
           {TRUST.map(({ icon: Icon, title, desc, bg }) => (
             <div key={title} style={{ background: 'white', borderRadius: 18, padding: 24, border: '1.5px solid #F1F5F9', display: 'flex', alignItems: 'flex-start', gap: 16, transition: 'all .3s' }}>
               <div style={{ width: 48, height: 48, background: bg, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -388,11 +391,11 @@ export default function HomePage() {
       </section>
 
       {/* ── REVIEWS ── */}
-      <section id="reviews" style={{ background: 'white', padding: '64px 32px' }}>
+      <section id="reviews" className="px-4 sm:px-6 lg:px-8" style={{ background: 'white', padding: '64px 0' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>💬 ULASAN PENGGUNA</div>
-            <h2 style={{ fontSize: 34, fontWeight: 900, color: '#0F172A', margin: '0 0 10px' }}>Apa Kata Mereka?</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-[34px]" style={{ fontWeight: 900, color: '#0F172A', margin: '0 0 10px' }}>Apa Kata Mereka?</h2>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
               <span style={{ color: '#F59E0B', fontSize: 22 }}>★★★★★</span>
               <span style={{ fontSize: 20, fontWeight: 800, color: '#0F172A' }}>4.9</span>
@@ -400,7 +403,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24, marginBottom: 40 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6" style={{ marginBottom: 40 }}>
             {reviews.length === 0 ? (
               <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '32px', color: '#94A3B8' }}>Belum ada ulasan. Jadilah yang pertama!</div>
             ) : reviews.map((r, i) => {
@@ -425,10 +428,10 @@ export default function HomePage() {
           </div>
 
           {/* Review Form */}
-          <div style={{ background: 'linear-gradient(135deg,#F0F7FF,#F5F0FF)', borderRadius: 24, padding: 36, border: '1.5px solid #DBEAFE' }}>
+          <div style={{ background: 'linear-gradient(135deg,#F0F7FF,#F5F0FF)', borderRadius: 24, padding: '28px 20px', border: '1.5px solid #DBEAFE' }}>
             <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0F172A', margin: '0 0 6px' }}>💌 Bagikan Pengalamanmu</h3>
             <p style={{ fontSize: 14, color: '#64748B', margin: '0 0 28px' }}>Ulasanmu membantu jutaan pembeli membuat keputusan yang lebih baik!</p>
-            <form onSubmit={handleReview} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+            <form onSubmit={handleReview} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 7 }}>Nama</label>
@@ -469,16 +472,16 @@ export default function HomePage() {
       </section>
 
       {/* ── SELLER CTA ── */}
-      <section id="seller" style={{ background: 'linear-gradient(135deg,#1E3A8A 0%,#1D4ED8 50%,#2563EB 100%)', padding: '80px 32px', position: 'relative', overflow: 'hidden' }}>
+      <section id="seller" className="px-4 sm:px-6 lg:px-8" style={{ background: 'linear-gradient(135deg,#1E3A8A 0%,#1D4ED8 50%,#2563EB 100%)', padding: '56px 0 64px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -80, right: -80, width: 400, height: 400, borderRadius: '50%', background: 'rgba(255,255,255,.04)', pointerEvents: 'none' }} />
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 48, position: 'relative' }}>
+        <div className="flex flex-col lg:flex-row" style={{ maxWidth: 1200, margin: '0 auto', alignItems: 'center', justifyContent: 'space-between', gap: 40, position: 'relative' }}>
           <div style={{ maxWidth: 520 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#93C5FD', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Store style={{ width: 14, height: 14 }} /> UNTUK PENJUAL
             </div>
-            <h2 style={{ fontSize: 38, fontWeight: 900, color: 'white', margin: '0 0 16px', lineHeight: 1.15 }}>Mulai Berjualan<br />di SEAPEDIA, Gratis!</h2>
+            <h2 className="text-3xl lg:text-[38px]" style={{ fontWeight: 900, color: 'white', margin: '0 0 16px', lineHeight: 1.15 }}>Mulai Berjualan<br />di SEAPEDIA, Gratis!</h2>
             <p style={{ fontSize: 16, color: 'rgba(255,255,255,.8)', margin: '0 0 32px', lineHeight: 1.75 }}>Bergabung dengan 2.000+ penjual sukses. Nikmati buka toko gratis, laporan real-time, dan jangkau lebih dari 50.000 pembeli aktif.</p>
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <Link href="/register" style={{ padding: '15px 30px', background: 'white', color: '#1D4ED8', fontSize: 15, fontWeight: 800, borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 16px rgba(0,0,0,.15)' }}>
                 <Store style={{ width: 18, height: 18 }} /> Daftar sebagai Penjual
               </Link>
@@ -487,7 +490,7 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, flexShrink: 0 }}>
+          <div className="grid grid-cols-2 w-full lg:w-auto" style={{ gap: 16, flexShrink: 0 }}>
             {[['2.000+','Seller Aktif'],['Rp 5M+','Total Transaksi'],['0%','Biaya Daftar'],['24/7','Support']].map(([v,l]) => (
               <div key={l} style={{ background: 'rgba(255,255,255,.1)', border: '1.5px solid rgba(255,255,255,.18)', borderRadius: 18, padding: 24, textAlign: 'center' }}>
                 <div style={{ fontSize: 34, fontWeight: 900, color: '#FCD34D', lineHeight: 1 }}>{v}</div>
@@ -499,10 +502,10 @@ export default function HomePage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: '#0F172A', padding: '72px 32px 32px' }}>
+      <footer className="px-4 sm:px-6 lg:px-8" style={{ background: '#0F172A', padding: '56px 0 32px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 48, marginBottom: 52 }}>
-            <div>
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-8 lg:gap-12" style={{ marginBottom: 52 }}>
+            <div className="col-span-2 lg:col-span-1">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
                 <div style={{ width: 40, height: 40, background: 'linear-gradient(135deg,#1E40AF,#3B82F6)', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <ShoppingBag style={{ width: 20, height: 20, color: 'white' }} />

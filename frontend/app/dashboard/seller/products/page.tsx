@@ -211,7 +211,8 @@ export default function SellerProductsPage() {
         <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8', fontSize: 13 }}>Memuat...</div>
       ) : (
         <div style={{ background: 'white', borderRadius: 20, border: '1.5px solid #F1F5F9', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
             <thead style={{ background: '#F8FAFC' }}>
               <tr>
                 {['Produk', 'Harga', 'Stok', 'Status', 'Aksi'].map(h => (
@@ -296,6 +297,7 @@ export default function SellerProductsPage() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </DashboardLayout>

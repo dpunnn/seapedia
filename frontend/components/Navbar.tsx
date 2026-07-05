@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import {
   ShoppingBag, ShoppingCart, Bell, Search, LayoutDashboard, LogOut,
-  ChevronDown, Store, Truck, Crown,
+  ChevronDown, Store, Truck, Crown, Menu, X,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import api from '@/lib/api';
@@ -29,6 +29,7 @@ export default function Navbar() {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 4);
@@ -56,6 +57,7 @@ export default function Navbar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     router.push(search.trim() ? `/products?search=${encodeURIComponent(search.trim())}` : '/products');
+    setMobileOpen(false);
   };
 
   const dashboardRoute = user?.activeRole ? ROLE_ROUTES[user.activeRole] : null;
@@ -63,119 +65,206 @@ export default function Navbar() {
   const roleBg   = user?.activeRole ? ROLE_BG[user.activeRole]   : '#EFF6FF';
   const userName  = user?.email?.split('@')[0] ?? '';
 
+  const navLinks = (
+    <>
+      <NavLink href="/products?category=katalog">Katalog</NavLink>
+      <NavLink href="/products">Produk</NavLink>
+      <NavLink href="/reviews">Ulasan</NavLink>
+      <NavLink href="/#seller">Jual Disini</NavLink>
+      {user?.activeRole === 'SELLER' && <NavLink href="/dashboard/seller"><Store style={{ width: 13, height: 13, display: 'inline', marginRight: 4 }} />Toko</NavLink>}
+      {user?.activeRole === 'DRIVER' && <NavLink href="/dashboard/driver"><Truck style={{ width: 13, height: 13, display: 'inline', marginRight: 4 }} />Driver</NavLink>}
+      {(user?.roles?.includes('ADMIN') || user?.activeRole === 'ADMIN') && (
+        <NavLink href="/dashboard/admin" redHover>
+          <Crown style={{ width: 13, height: 13, display: 'inline', marginRight: 4, color: '#DC2626' }} />
+          <span style={{ color: '#DC2626' }}>Admin</span>
+        </NavLink>
+      )}
+    </>
+  );
+
   return (
-    <nav style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-      background: 'white', height: 64, display: 'flex', alignItems: 'center',
-      padding: '0 32px', gap: 16,
-      boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,.12)' : '0 1px 3px rgba(0,0,0,.06)',
-      transition: 'box-shadow .3s',
-    }}>
-      {/* Logo */}
-      <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', flexShrink: 0, textDecoration: 'none' }}>
-        <div style={{ width: 38, height: 38, background: 'linear-gradient(135deg,#1E40AF,#3B82F6)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(37,99,235,.3)', flexShrink: 0 }}>
-          <ShoppingBag style={{ width: 20, height: 20, color: 'white' }} />
-        </div>
-        <span style={{ fontSize: 21, fontWeight: 900, color: '#1D4ED8', letterSpacing: -.5, whiteSpace: 'nowrap' }}>SEAPEDIA</span>
-      </Link>
-
-      {/* Nav links */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 8, flexShrink: 0 }}>
-        <NavLink href="/products?category=katalog">Katalog</NavLink>
-        <NavLink href="/products">Produk</NavLink>
-        <NavLink href="/reviews">Ulasan</NavLink>
-        <NavLink href="/#seller">Jual Disini</NavLink>
-        {user?.activeRole === 'SELLER' && <NavLink href="/dashboard/seller"><Store style={{ width: 13, height: 13, display: 'inline', marginRight: 4 }} />Toko</NavLink>}
-        {user?.activeRole === 'DRIVER' && <NavLink href="/dashboard/driver"><Truck style={{ width: 13, height: 13, display: 'inline', marginRight: 4 }} />Driver</NavLink>}
-        {(user?.roles?.includes('ADMIN') || user?.activeRole === 'ADMIN') && (
-          <NavLink href="/dashboard/admin" redHover>
-            <Crown style={{ width: 13, height: 13, display: 'inline', marginRight: 4, color: '#DC2626' }} />
-            <span style={{ color: '#DC2626' }}>Admin</span>
-          </NavLink>
-        )}
-      </div>
-
-      {/* Search */}
-      <form onSubmit={handleSearch} style={{ flex: 1, maxWidth: 400, margin: '0 16px', position: 'relative' }}>
-        <Search style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', width: 15, height: 15, color: '#94A3B8', pointerEvents: 'none' }} />
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Cari produk, toko, brand..."
-          style={{ width: '100%', padding: '10px 14px 10px 40px', border: '1.5px solid #E2E8F0', borderRadius: 12, fontSize: 13, outline: 'none', background: '#F8FAFC', transition: 'all .2s', boxSizing: 'border-box' }}
-          onFocus={e => { e.target.style.borderColor = '#2563EB'; e.target.style.background = 'white'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,.1)'; }}
-          onBlur={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.background = '#F8FAFC'; e.target.style.boxShadow = 'none'; }}
-        />
-      </form>
-
-      {/* Right */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexShrink: 0 }}>
-        {/* Bell */}
-        <button style={{ position: 'relative', width: 38, height: 38, borderRadius: 10, border: '1.5px solid #E2E8F0', background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Bell style={{ width: 17, height: 17, color: '#64748B' }} />
-          <span style={{ position: 'absolute', top: -3, right: -3, width: 10, height: 10, background: '#DC2626', borderRadius: '50%', border: '2px solid white', animation: 'pulseDot 2s ease-in-out infinite' }} />
-        </button>
-
-        {/* Cart */}
-        <Link href={user?.activeRole === 'BUYER' ? '/dashboard/buyer/cart' : '/products'}
-          style={{ position: 'relative', width: 38, height: 38, borderRadius: 10, border: '1.5px solid #E2E8F0', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
-          <ShoppingCart style={{ width: 17, height: 17, color: '#64748B' }} />
+    <>
+      <nav
+        className="px-4 sm:px-6 lg:px-8"
+        style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+          background: 'white', height: 64, display: 'flex', alignItems: 'center',
+          gap: 16,
+          boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,.12)' : '0 1px 3px rgba(0,0,0,.06)',
+          transition: 'box-shadow .3s',
+        }}
+      >
+        {/* Logo */}
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', flexShrink: 0, textDecoration: 'none' }}>
+          <div style={{ width: 38, height: 38, background: 'linear-gradient(135deg,#1E40AF,#3B82F6)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(37,99,235,.3)', flexShrink: 0 }}>
+            <ShoppingBag style={{ width: 20, height: 20, color: 'white' }} />
+          </div>
+          <span className="hidden sm:inline" style={{ fontSize: 21, fontWeight: 900, color: '#1D4ED8', letterSpacing: -.5, whiteSpace: 'nowrap' }}>SEAPEDIA</span>
         </Link>
 
-        {/* Divider */}
-        <div style={{ width: 1, height: 24, background: '#E2E8F0', margin: '0 2px', flexShrink: 0 }} />
+        {/* Nav links — desktop only */}
+        <div className="hidden lg:flex" style={{ alignItems: 'center', gap: 2, marginLeft: 8, flexShrink: 0 }}>
+          {navLinks}
+        </div>
 
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger style={{ background: roleBg, color: roleColor, padding: '9px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, border: 'none', cursor: 'pointer', outline: 'none' }}>
-              👋 {userName}
-              {user.activeRole && (
-                <span style={{ fontSize: 11, background: roleColor, color: 'white', borderRadius: 6, padding: '2px 7px', fontWeight: 700 }}>
-                  {ROLE_LABELS[user.activeRole]}
-                </span>
-              )}
-              <ChevronDown style={{ width: 13, height: 13, opacity: .6 }} />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" style={{ width: 200 }}>
-              {dashboardRoute && (
-                <>
-                  <DropdownMenuItem onClick={() => router.push(dashboardRoute)}>
-                    <LayoutDashboard style={{ width: 14, height: 14, marginRight: 8, color: '#94A3B8' }} />
-                    Dashboard
-                  </DropdownMenuItem>
+        {/* Search — desktop only */}
+        <form onSubmit={handleSearch} className="hidden lg:block" style={{ flex: 1, maxWidth: 400, margin: '0 16px', position: 'relative' }}>
+          <Search style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', width: 15, height: 15, color: '#94A3B8', pointerEvents: 'none' }} />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Cari produk, toko, brand..."
+            style={{ width: '100%', padding: '10px 14px 10px 40px', border: '1.5px solid #E2E8F0', borderRadius: 12, fontSize: 13, outline: 'none', background: '#F8FAFC', transition: 'all .2s', boxSizing: 'border-box' }}
+            onFocus={e => { e.target.style.borderColor = '#2563EB'; e.target.style.background = 'white'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,.1)'; }}
+            onBlur={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.background = '#F8FAFC'; e.target.style.boxShadow = 'none'; }}
+          />
+        </form>
+
+        {/* Right */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexShrink: 0 }}>
+          {/* Bell — desktop only */}
+          <button className="hidden sm:flex" style={{ position: 'relative', width: 38, height: 38, borderRadius: 10, border: '1.5px solid #E2E8F0', background: 'white', cursor: 'pointer', alignItems: 'center', justifyContent: 'center' }}>
+            <Bell style={{ width: 17, height: 17, color: '#64748B' }} />
+            <span style={{ position: 'absolute', top: -3, right: -3, width: 10, height: 10, background: '#DC2626', borderRadius: '50%', border: '2px solid white', animation: 'pulseDot 2s ease-in-out infinite' }} />
+          </button>
+
+          {/* Cart */}
+          <Link href={user?.activeRole === 'BUYER' ? '/dashboard/buyer/cart' : '/products'}
+            style={{ position: 'relative', width: 38, height: 38, borderRadius: 10, border: '1.5px solid #E2E8F0', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', flexShrink: 0 }}>
+            <ShoppingCart style={{ width: 17, height: 17, color: '#64748B' }} />
+          </Link>
+
+          {/* Divider — desktop only */}
+          <div className="hidden sm:block" style={{ width: 1, height: 24, background: '#E2E8F0', margin: '0 2px', flexShrink: 0 }} />
+
+          {/* Auth actions — desktop only, moved into mobile drawer below */}
+          <div className="hidden sm:flex" style={{ alignItems: 'center', gap: 8 }}>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger style={{ background: roleBg, color: roleColor, padding: '9px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, border: 'none', cursor: 'pointer', outline: 'none' }}>
+                  👋 <span className="hidden md:inline">{userName}</span>
+                  {user.activeRole && (
+                    <span style={{ fontSize: 11, background: roleColor, color: 'white', borderRadius: 6, padding: '2px 7px', fontWeight: 700 }}>
+                      {ROLE_LABELS[user.activeRole]}
+                    </span>
+                  )}
+                  <ChevronDown style={{ width: 13, height: 13, opacity: .6 }} />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" style={{ width: 200 }}>
+                  {dashboardRoute && (
+                    <>
+                      <DropdownMenuItem onClick={() => router.push(dashboardRoute)}>
+                        <LayoutDashboard style={{ width: 14, height: 14, marginRight: 8, color: '#94A3B8' }} />
+                        Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  {user.roles.filter(r => r !== user.activeRole).map(role => (
+                    <DropdownMenuItem key={role} onClick={() => handleRoleSwitch(role)}>
+                      Beralih ke {ROLE_LABELS[role]}
+                    </DropdownMenuItem>
+                  ))}
+                  {!user.activeRole && user.roles.map(role => (
+                    <DropdownMenuItem key={role} onClick={() => handleRoleSwitch(role)}>
+                      Masuk sebagai {ROLE_LABELS[role]}
+                    </DropdownMenuItem>
+                  ))}
                   <DropdownMenuSeparator />
-                </>
-              )}
-              {user.roles.filter(r => r !== user.activeRole).map(role => (
-                <DropdownMenuItem key={role} onClick={() => handleRoleSwitch(role)}>
-                  Beralih ke {ROLE_LABELS[role]}
-                </DropdownMenuItem>
-              ))}
-              {!user.activeRole && user.roles.map(role => (
-                <DropdownMenuItem key={role} onClick={() => handleRoleSwitch(role)}>
-                  Masuk sebagai {ROLE_LABELS[role]}
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} style={{ color: '#DC2626' }}>
-                <LogOut style={{ width: 14, height: 14, marginRight: 8 }} />
-                Keluar
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <>
-            <Link href="/login" style={{ padding: '9px 18px', borderRadius: 10, border: '1.5px solid #2563EB', background: 'white', color: '#2563EB', fontSize: 13, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
-              Masuk
-            </Link>
-            <Link href="/register" style={{ padding: '9px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white', fontSize: 13, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', boxShadow: '0 2px 8px rgba(37,99,235,.3)' }}>
-              Daftar Gratis
-            </Link>
-          </>
-        )}
-      </div>
-    </nav>
+                  <DropdownMenuItem onClick={handleLogout} style={{ color: '#DC2626' }}>
+                    <LogOut style={{ width: 14, height: 14, marginRight: 8 }} />
+                    Keluar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link href="/login" style={{ padding: '9px 18px', borderRadius: 10, border: '1.5px solid #2563EB', background: 'white', color: '#2563EB', fontSize: 13, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+                  Masuk
+                </Link>
+                <Link href="/register" style={{ padding: '9px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white', fontSize: 13, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', boxShadow: '0 2px 8px rgba(37,99,235,.3)', whiteSpace: 'nowrap' }}>
+                  Daftar
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={() => setMobileOpen(v => !v)}
+            className="sm:hidden"
+            style={{ width: 38, height: 38, borderRadius: 10, border: '1.5px solid #E2E8F0', background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            aria-label="Buka menu"
+          >
+            {mobileOpen ? <X style={{ width: 18, height: 18, color: '#0F172A' }} /> : <Menu style={{ width: 18, height: 18, color: '#0F172A' }} />}
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <>
+          <div
+            className="sm:hidden"
+            style={{ position: 'fixed', inset: 0, top: 64, background: 'rgba(0,0,0,0.4)', zIndex: 98 }}
+            onClick={() => setMobileOpen(false)}
+          />
+          <div
+            className="sm:hidden"
+            style={{
+              position: 'fixed', top: 64, left: 0, right: 0, zIndex: 99,
+              background: 'white', borderBottom: '1px solid #E2E8F0',
+              padding: '16px', boxShadow: '0 8px 24px rgba(0,0,0,.1)',
+              maxHeight: 'calc(100vh - 64px)', overflowY: 'auto',
+            }}
+          >
+            <form onSubmit={handleSearch} style={{ position: 'relative', marginBottom: 16 }}>
+              <Search style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', width: 15, height: 15, color: '#94A3B8', pointerEvents: 'none' }} />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Cari produk, toko, brand..."
+                style={{ width: '100%', padding: '10px 14px 10px 40px', border: '1.5px solid #E2E8F0', borderRadius: 12, fontSize: 13, outline: 'none', background: '#F8FAFC', boxSizing: 'border-box' }}
+              />
+            </form>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 16 }} onClick={() => setMobileOpen(false)}>
+              {navLinks}
+            </div>
+
+            {user ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 12, borderTop: '1px solid #F1F5F9' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>👋 {userName}</div>
+                {dashboardRoute && (
+                  <Link href={dashboardRoute} onClick={() => setMobileOpen(false)} style={{ fontSize: 13, fontWeight: 600, color: '#2563EB', textDecoration: 'none' }}>
+                    Dashboard
+                  </Link>
+                )}
+                {user.roles.filter(r => r !== user.activeRole).map(role => (
+                  <button key={role} onClick={() => { handleRoleSwitch(role); setMobileOpen(false); }} style={{ textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#64748B', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                    Beralih ke {ROLE_LABELS[role]}
+                  </button>
+                ))}
+                <button onClick={() => { handleLogout(); setMobileOpen(false); }} style={{ textAlign: 'left', fontSize: 13, fontWeight: 700, color: '#DC2626', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                  Keluar
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 10, paddingTop: 12, borderTop: '1px solid #F1F5F9' }}>
+                <Link href="/login" onClick={() => setMobileOpen(false)} style={{ flex: 1, textAlign: 'center', padding: '10px 18px', borderRadius: 10, border: '1.5px solid #2563EB', background: 'white', color: '#2563EB', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>
+                  Masuk
+                </Link>
+                <Link href="/register" onClick={() => setMobileOpen(false)} style={{ flex: 1, textAlign: 'center', padding: '10px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#1D4ED8,#2563EB)', color: 'white', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>
+                  Daftar Gratis
+                </Link>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </>
   );
 }
 

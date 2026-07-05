@@ -88,7 +88,8 @@ export default function SellerIncomePage() {
             <div style={{ padding: '18px 22px', borderBottom: '1px solid #F1F5F9', fontSize: 14, fontWeight: 800, color: '#0F172A' }}>
               Rincian Pesanan Selesai
             </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 420 }}>
               <thead style={{ background: '#F8FAFC' }}>
                 <tr>
                   {['Pesanan', 'Tanggal', 'Total'].map(h => (
@@ -121,6 +122,7 @@ export default function SellerIncomePage() {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
         </>
       ) : (

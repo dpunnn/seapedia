@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth.store';
@@ -8,6 +8,7 @@ import {
   LayoutDashboard, Wallet, MapPin, ShoppingCart, Package, BarChart2,
   Store, Box, ClipboardList, TrendingUp, Search, Truck, History,
   AlertTriangle, Users, Ticket, Tag, Clock, LogOut, ChevronRight, ShoppingBag,
+  Menu, X,
 } from 'lucide-react';
 
 interface NavItem { href: string; label: string; }
@@ -58,12 +59,17 @@ export default function DashboardLayout({ role, navItems, children, navBadges }:
   const { user, isLoading, logout } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && (!user || user.activeRole !== role)) {
       router.push('/login');
     }
   }, [user, isLoading, role, router]);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   const handleLogout = async () => {
     try { await api.post('/auth/logout'); } catch {}
@@ -84,9 +90,20 @@ export default function DashboardLayout({ role, navItems, children, navBadges }:
 
   return (
     <div className="flex min-h-screen" style={{ background: '#F0F5FF' }}>
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 lg:hidden"
+          style={{ background: 'rgba(0,0,0,0.5)' }}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
-        className="flex-shrink-0 flex flex-col sticky top-0 h-screen overflow-y-auto"
+        className={`flex-shrink-0 flex flex-col fixed lg:sticky top-0 h-screen overflow-y-auto z-50 transition-transform duration-200 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
         style={{
           width: 240,
           background: 'linear-gradient(180deg,#0F172A 0%,#1E293B 100%)',
@@ -94,10 +111,20 @@ export default function DashboardLayout({ role, navItems, children, navBadges }:
       >
         {/* Logo */}
         <div className="p-5 pb-4">
-          <Link href="/" className="flex items-center gap-2 mb-5">
-            <ShoppingBag className="w-5 h-5 text-white" />
-            <span className="font-bold text-white text-base tracking-widest">SEAPEDIA</span>
-          </Link>
+          <div className="flex items-center justify-between mb-5">
+            <Link href="/" className="flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5 text-white" />
+              <span className="font-bold text-white text-base tracking-widest">SEAPEDIA</span>
+            </Link>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden flex-shrink-0"
+              style={{ color: 'rgba(255,255,255,0.6)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+              aria-label="Tutup menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
           {/* User card */}
           {(() => {
@@ -220,8 +247,25 @@ export default function DashboardLayout({ role, navItems, children, navBadges }:
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto" style={{ padding: 32 }}>
-        {children}
+      <div className="flex-1 overflow-auto min-w-0">
+        {/* Mobile top bar */}
+        <div
+          className="lg:hidden flex items-center gap-3 sticky top-0 z-30"
+          style={{ background: '#F0F5FF', padding: '14px 16px', borderBottom: '1px solid #E2E8F0' }}
+        >
+          <button
+            onClick={() => setSidebarOpen(true)}
+            style={{ color: '#0F172A', background: 'transparent', border: 'none', cursor: 'pointer' }}
+            aria-label="Buka menu sidebar"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          <span className="font-bold" style={{ fontSize: 14, letterSpacing: '0.05em', color: '#0F172A' }}>SEAPEDIA</span>
+        </div>
+
+        <div className="p-5 sm:p-6 lg:p-8">
+          {children}
+        </div>
       </div>
     </div>
   );

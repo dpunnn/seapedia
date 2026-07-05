@@ -145,7 +145,8 @@ export default function SellerDashboard() {
             Belum ada pesanan masuk
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
                 {['Pesanan', 'Pembeli', 'Total', 'Status', 'Aksi'].map(h => (
@@ -192,6 +193,7 @@ export default function SellerDashboard() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </DashboardLayout>
